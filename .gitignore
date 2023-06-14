@@ -1,3 +1,7 @@
 build
 *.o
 webserv
+a.out
+.gitignore
+.DS_Store
+.vscode/settings.json
