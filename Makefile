@@ -11,7 +11,8 @@ SRC_DIR		= srcs
 # SRCS 		= $(shell find $(SRC_DIR) -name '*.cpp')
 SRCS 		=	srcs/main.cpp \
 				srcs/conf/Config.cpp \
-				srcs/conf/ServerConf.cpp
+				srcs/conf/ServerConf.cpp \
+				srcs/utils/StringUtil.cpp
 
 OBJS 		= $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 

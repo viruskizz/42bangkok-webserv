@@ -5,9 +5,9 @@ class ServerConf
 {
 private:
 	/* data */
-	ServerConf();
 public:
-	~ServerConf();
+	ServerConf(void);
+	~ServerConf(void);
 
 	int			listen;
 	std::string	serverName;
