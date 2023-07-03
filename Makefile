@@ -10,7 +10,9 @@ BUILD_DIR	= build
 SRC_DIR		= srcs
 # SRCS 		= $(shell find $(SRC_DIR) -name '*.cpp')
 SRCS 		=	srcs/main.cpp \
-				srcs/conf/Config.cpp
+				srcs/conf/Config.cpp \
+				srcs/conf/ServerConf.cpp
+
 OBJS 		= $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 
 INCLUDE_DIR	= ./includes

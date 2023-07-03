@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../srcs/conf/Config.hpp"
+#include "../srcs/utils/StringUtil.hpp"
 
 // #include <iostream>
 

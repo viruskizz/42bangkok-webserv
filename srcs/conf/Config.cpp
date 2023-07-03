@@ -35,8 +35,10 @@ void Config::readfile()
 	if (file.is_open())
 	{
 		while (getline(file, line)) {
-			// std::cout << line << '\n';
 			m_filedata += line + '\n';
+			if (!line.empty() && line.at(0) == '#') {
+				continue;
+			}
 		}
 		file.close();
 	}
@@ -44,6 +46,10 @@ void Config::readfile()
 	{
 		throw Config::FileNotFoundException();
 	}
+}
+
+void setConfig(std::string line) {
+	// std
 }
 
 std::ostream & operator << (std::ostream & o, Config const & rhs) {

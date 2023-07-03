@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include "ServerConf.cpp"
+#include "ServerConf.hpp"
 
 class Config
 {
