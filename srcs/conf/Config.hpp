@@ -12,7 +12,7 @@ private:
 
 	void	readfile(void);
 	void	setConfig(std::string, std::ifstream &);
-	bool	setServerConf(std::string, std::ifstream &);
+	void	setServerConf(std::string, std::ifstream &);
 
 	std::string 			m_filename;
 	std::string				m_filedata;

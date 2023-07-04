@@ -58,16 +58,13 @@ void Config::setConfig(std::string line, std::ifstream & file) {
 	}
 	std::string key = value[0];
 	value.erase(value.begin());
+	if (value.size() == 0) {
+		throw Config::InvalidConfigException();
+	}
 	if (key == "index") {
-		if (value.size() == 0) {
-			throw Config::InvalidConfigException();
-		}
 		m_index = value.at(0);
 	}
 	if (key == "server") {
-		if (value.size() == 0) {
-			throw Config::InvalidConfigException();
-		}
 		if (value.at(0) != "{") {
 			throw Config::InvalidConfigException();
 		}
@@ -75,7 +72,7 @@ void Config::setConfig(std::string line, std::ifstream & file) {
 	}
 }
 
-bool Config::setServerConf(std::string line, std::ifstream & file) {
+void Config::setServerConf(std::string line, std::ifstream & file) {
 	ServerConf conf = ServerConf();
 	while (getline(file, line)) {
 		m_filedata += line + '\n';
@@ -91,11 +88,11 @@ bool Config::setServerConf(std::string line, std::ifstream & file) {
 		}
 		std::string key = value[0];
 		value.erase(value.begin());
-		if (key == "index") {
-			if (value.size() == 0) {
-				throw Config::InvalidConfigException();
-			}
-			m_index = value.at(0);
+		if (value.size() == 0) {
+			throw Config::InvalidConfigException();
+		}
+		if (key == "server_name") {
+			conf.serverName = value[0];
 		}
 	}
 	throw Config::InvalidConfigException();
