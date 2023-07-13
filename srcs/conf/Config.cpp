@@ -94,6 +94,14 @@ void Config::setServerConf(std::string line, std::ifstream & file) {
 		if (key == "server_name") {
 			conf.serverName = value[0];
 		}
+		if (key == "listen") {
+			std::stringstream ss;
+			ss << value[0];
+			ss >> conf.listen;
+		}
+		if (key == "root") {
+			conf.root = value[0];
+		}
 	}
 	throw Config::InvalidConfigException();
 }
