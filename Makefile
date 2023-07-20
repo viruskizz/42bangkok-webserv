@@ -12,7 +12,8 @@ SRC_DIR		= srcs
 SRCS 		=	srcs/main.cpp \
 				srcs/conf/Config.cpp \
 				srcs/conf/ServerConf.cpp \
-				srcs/utils/StringUtil.cpp
+				srcs/utils/StringUtil.cpp \
+				srcs/Header.cpp
 
 OBJS 		= $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 

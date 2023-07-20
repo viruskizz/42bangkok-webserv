@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:28:18 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/06/12 20:24:32 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/07/19 00:18:29 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,5 +82,13 @@ std::vector<std::string>	split(std::string const &string, char delimeter)
 			result.push_back(word);
 		}
 	}
+	return (result);
+}
+
+std::vector<char *>	strJoinLen(std::vector<char *> str1, std::vector<char *> str2)
+{
+	std::vector<char *>	result;
+
+
 	return (result);
 }

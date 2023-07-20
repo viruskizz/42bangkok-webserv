@@ -12,7 +12,9 @@ Config::Config(std::string const & filename) : m_filename(filename), m_filedata(
 	this->readfile();
 }
 
-Config::~Config() {}
+Config::~Config() {
+	std::cout << "[Config] destructor is called" << std::endl;
+}
 
 std::string Config::getFilename() const
 {
