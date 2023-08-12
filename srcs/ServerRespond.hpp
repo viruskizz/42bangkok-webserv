@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 20:20:16 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/07 23:24:47 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/12 13:00:10 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,12 +26,12 @@ class ServerRespond
 		std::string		_contentType;
 		std::string		_statusCode;
 		std::string		_httpVersion;
-		// std::string		_fileName;
 		char			*_bodyContent;
 		int				_contentLength;
 		int				_headerLength;
 		bool			_cgi;
 		int				_code;
+		std::string		_respondHeader;
 
 	public:
 		ServerRespond(void);
@@ -48,6 +48,8 @@ class ServerRespond
 		char const			*getBodyContent(void) const;
 		int					getBodyLength(void) const;
 		int					getHeaderLength(void) const;
+		void				setRespondHeader(std::string const &respondHeader);
+		int					getCode(void) const;
 		void				sendRepond(int socket) const;
 };
 

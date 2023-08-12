@@ -1,7 +1,7 @@
 #include "Webserv.hpp"
 #include "ServerRespond.hpp"
 #include "RequestHeader.hpp"
-#include <netdb.h>
+// #include <netdb.h>
 
 std::vector<int>				serverSocket;
 std::vector<struct addrinfo *>	address;
@@ -16,11 +16,8 @@ std::vector<struct addrinfo *>	address;
 
 # define PORT "8080"
 # define BACK_LOG 10
-// # define ROOT (char *)"./html"
-// # define READSIZE 100000
-// # define HTTP (char *)"HTTP/1.1 "
 
-void exitWithError(char *errorMessage, int mode)
+static void exitWithError(char *errorMessage, int mode)
 {
 	if (mode == EE_PERR)
 		perror(errorMessage);
@@ -30,7 +27,7 @@ void exitWithError(char *errorMessage, int mode)
 }
 
 
-void	signalHandle(int signalNumber)
+static void	signalHandle(int signalNumber)
 {
 	static_cast<void>(signalNumber);
 	for (std::vector<int>::iterator it = serverSocket.begin();
@@ -49,7 +46,7 @@ void	signalHandle(int signalNumber)
 // 	int		fd;
 // 	char	*fileName;
 // 	int		count;
-
+//
 // 	fileName = NULL;
 // 	count = 0;
 // 	if (url == "/")
@@ -93,11 +90,11 @@ void	signalHandle(int signalNumber)
 // 	// close(socket);
 // 	// return (0);
 // 	RequestHeader	clientRequest(socket);
-
+//
 // 	// * moving into server directory
 // 	// * check client request while port and file is request
 // 	// * read file from client request and write into respond
-
+//
 // 	// TODO currentServer = serverFindServerWithPort(clientRequest.getPort());
 // 	// TODO if (currentServer.getUrl() == "/")
 // 	std::cout << "********** SEVER HANDLE **********" << std::endl;
@@ -122,8 +119,8 @@ void	signalHandle(int signalNumber)
 // 			std::cout << "errno: " << errno << std::endl;
 // 			return (errno);
 // 		}
-
-
+//
+//
 // 		buffer = new char[READSIZE + 1];
 // 		while (true)
 // 		{
@@ -153,7 +150,7 @@ void	signalHandle(int signalNumber)
 // 	else
 // 	{
 // 		char	*fileName;
-
+//
 // 		fileName = strjoin(ROOT, const_cast<char *>(clientRequest.getUrl().c_str()), SJ_NONE);
 // 		std::cout << fileName << std::endl;
 // 		fd = open(fileName, O_RDONLY);
@@ -163,7 +160,7 @@ void	signalHandle(int signalNumber)
 // 			std::cout << "errno: " << errno << std::endl;
 // 			return (errno);
 // 		}
-
+//
 // 		buffer = new char[READSIZE + 1];
 // 		while (true)
 // 		{
@@ -174,12 +171,12 @@ void	signalHandle(int signalNumber)
 // 			body = strjoin(body, bodySize, buffer, readByte, SJ_FFIR);
 // 			bodySize += readByte;
 // 		}
-
+//
 // 		std::cout << std::endl;
 // 		char	*length;
 // 		char	*clientRespond;
 // 		int		headerSize;
-
+//
 // 		length = itoa(bodySize);
 // 		if (clientRequest.getUrl().find(".png") != std::string::npos)
 // 			clientRespond = strjoin(png, length, SJ_FSEC);
@@ -197,6 +194,7 @@ void	signalHandle(int signalNumber)
 // 	}
 // 	return (200);
 // }
+
 
 int	main(int argc, char **argv)
 {
@@ -222,7 +220,8 @@ int	main(int argc, char **argv)
 	hint.ai_family = AF_UNSPEC; // * allow ip address AF_INET ipv4, AF_INET6 ipv6 ;
 	hint.ai_socktype = SOCK_STREAM;
 	hint.ai_flags = AI_PASSIVE;
-	errorNumber = getaddrinfo(NULL, configFile->getServer()[0]->listen.c_str(), &hint, &addrList); // * << change position 0 to i for dynamic;
+	// TODO change NULL -> server_name;
+	errorNumber = getaddrinfo("127.0.0.1", configFile->getServer()[0]->listen.c_str(), &hint, &addrList); // * << change position 0 to i for dynamic;
 	if (errorNumber != 0)
 		exitWithError(const_cast<char *>(gai_strerror(errorNumber)), EE_PERR); // TODO checkerror output;
 	
@@ -241,6 +240,7 @@ int	main(int argc, char **argv)
 		// * bind socket with value in struct sockaddr_in;
 		if (bind(socketFd, ptr->ai_addr, ptr->ai_addrlen) == 0)
 		{
+			// fcntl(socketFd, F_SETFL, O_NONBLOCK);
 			serverSocket.push_back(socketFd);
 			address.push_back(ptr);
 			break ;
@@ -285,6 +285,7 @@ int	main(int argc, char **argv)
 					{
 						std::cout << "********** Accept Client Request ***********" << std::endl;
 						clientSocket = accept(serverSocket[j], address[j]->ai_addr, &address[j]->ai_addrlen);
+						// fcntl(clientSocket, F_SETFL, O_NONBLOCK);
 						if (clientSocket < 0)
 							exitWithError((char *)"webserv: ERROR: ", EE_PERR);
 						FD_SET(clientSocket, &currentSocket);
@@ -298,10 +299,11 @@ int	main(int argc, char **argv)
 				if (!isFound)
 				{
 					std::cout << "********** Sending Respond to Client **********" << std::endl;
+					fcntl(socket, F_SETFL, O_NONBLOCK);
 					ServerRespond respond(socket, *configFile);
 					respond.sendRepond(socket);
 					// write(socket, respond.getRespond().c_str(), respond.getRespondLength());
-					std::cout << respond << std::endl;
+					// std::cout << respond << std::endl;
 					close(socket);
 					// serverHandler(i, *configFile);
 					FD_CLR(socket, &currentSocket);
@@ -319,7 +321,7 @@ int	main(int argc, char **argv)
 // 	int					clientSocket;
 // 	int					socketFd;
 // 	Config				configFile;
-
+//
 // 	signal(SIGINT, signalHandle);
 // 	// * checking the valid of argument [ Your program has to tacke a configuration file as argument, or use a default path ??] ;
 // 	// if (argc == 1)
@@ -328,10 +330,10 @@ int	main(int argc, char **argv)
 // 	// 	configFile = new Config(argv[1]);
 // 	// else
 // 	// 	exitWithError((char *)"webserv: Error: wrong argument.\n(hint) ./webserv [configurtion_file]", EE_NONE);
-
+//
 // 	struct addrinfo hint;
 // 	struct addrinfo *addrList;
-
+//
 // 	memset(&hint, '\0', sizeof(struct addrinfo));
 // 	hint.ai_family = AF_UNSPEC; // * allow ip address AF_INET ipv4, AF_INET6 ipv6 ;
 // 	hint.ai_socktype = SOCK_STREAM;
@@ -339,19 +341,19 @@ int	main(int argc, char **argv)
 // 	errorNumber = getaddrinfo(NULL, configFile.getServer()[0]->listen, &hint, &addrList); // * << change position 0 to i for dynamic;
 // 	if (errorNumber != 0)
 // 		exitWithError(const_cast<char *>(gai_strerror(errorNumber)), EE_PERR); // TODO checkerror output;
-	
+//
 // 	for (struct addrinfo *ptr = addrList;; ptr = ptr->ai_next)
 // 	{
 // 		if (ptr == NULL)
 // 			exitWithError((char *)"webserv: ERROR: ", EE_PERR);
-
+//
 // 		// * open the socket for web server;
 // 		socketFd = socket(ptr->ai_family, ptr->ai_socktype, 0);
 // 		if (socketFd < 1)
 // 			continue ;
-
+//
 // 		// * set option for socket;
-
+//
 // 		// * bind socket with value in struct sockaddr_in;
 // 		if (bind(socketFd, ptr->ai_addr, ptr->ai_addrlen) == 0)
 // 		{
@@ -361,24 +363,24 @@ int	main(int argc, char **argv)
 // 		}
 // 	}
 // 	freeaddrinfo(addrList);
-
+//
 // 	// * set the server to listen the client with number of back_log;
 // 	if (listen(socketFd, BACK_LOG) < 0) // TODO change backlog with config value
 // 		exitWithError((char *)"webserv: ERROR: ", EE_PERR);
-
+//
 // 	fd_set	currentSocket;
 // 	fd_set	readySocket;
 // 	int		maxSocketFd;
-
+//
 // 	FD_ZERO(&currentSocket);
 // 	for (int i = 0; i < serverSocket.size(); ++i)
 // 	{
 // 		FD_SET(serverSocket[i], &currentSocket);
 // 		std::cout << i << std::endl;
 // 	}
-
+//
 // 	maxSocketFd = serverSocket.back() + 1;
-
+//
 // 	while(1)
 // 	{
 // 		printf("\n+++++++ Waiting for new connection ++++++++\n\n");
@@ -401,36 +403,36 @@ int	main(int argc, char **argv)
 // 	// long 				valread;
 // 	struct sockaddr_in	address;
 // 	int					addrlen = sizeof(address);
-
+//
 // 	char *hello = (char *)"HTTP/1.1 200 OK\n"
 // 							"Content-Type: text/plain\n"
 // 							"Content-Length: 12\n"
 // 							"\nHello world!";
-
+//
 // 	char *website = (char *)"HTTP/1.1 200 OK\r\n"
 // 							"Content-Type: text/html\r\n"
 // 							"Content-Length: ";
-
+//
 // 	char *pic = (char *)"HTTP/1.1 200 OK\n"
 // 							// "Accept-Ranges: bytes\n"
 // 							"Content-Type: text/css\r\n"
 // 							"Content-Length: ";
-
+//
 // 	// Creating socket file descriptor
 // 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
 // 	{
 // 		perror("In socket");
 // 		exit(EXIT_FAILURE);
 // 	}
-
-
+//
+//
 // 	address.sin_family = AF_INET;
 // 	address.sin_addr.s_addr = INADDR_ANY;
 // 	address.sin_port = htons( PORT );
-
+//
 // 	memset(address.sin_zero, '\0', sizeof address.sin_zero);
-
-
+//
+//
 // 	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0)
 // 	{
 // 		perror("In bind");
@@ -449,21 +451,21 @@ int	main(int argc, char **argv)
 // 			perror("In accept");
 // 			exit(EXIT_FAILURE);
 // 		}
-
+//
 // 		Header test(new_socket);
 // 		// std::cout << test;
-
+//
 // 		// std::cout << "-> " << new_socket << std::endl;
 // 		char		buffer[1000000];
 // 		int			fd, readByte, count = 0;
 // 		char		*num, *respond;
 // 		char		*picture = NULL;
 // 		std::string	number;
-
+//
 // 		(void)hello;
 // 		for (int i = 0; i < 30000; ++i)
 // 			buffer[i] = '\0';
-
+//
 // 		num = (char *)calloc(20, 1);
 // 		if (test.getUrl() == "/")
 // 		{

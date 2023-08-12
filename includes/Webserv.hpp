@@ -3,11 +3,16 @@
 # include "../srcs/conf/Config.hpp"
 # include "../srcs/utils/StringUtil.hpp"
 # include <sys/socket.h>
+# include <sys/signal.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
+# include <dirent.h>
+# include <unistd.h>
 # include <cstring>
 # include <iostream>
+# include <netdb.h>
 # include <fcntl.h>
-# include <unistd.h>
+# include <cstdio>
 # include "RequestHeader.hpp"
 
 // #include <iostream>
@@ -45,6 +50,10 @@ struct t_CGI
 	std::string scriptName;
 	std::string	fileName;
 	std::string query;
+	std::string	clientName;
+	std::string	clientPort;
+	// std::string	serverName;
+	// std::string serverPort;
 
 	void print(void)
 	{
@@ -59,6 +68,10 @@ struct t_CGI
 		std::cout << "pathFileName: " << pathFileName << std::endl;
 		std::cout << "fileName: " << fileName << std::endl;
 		std::cout << "query: " << query << std::endl;
+		std::cout << "clientName: " << clientName << std::endl;
+		std::cout << "clientPort: " << clientPort << std::endl;
+		std::cout << "serverName: " << serverName << std::endl;
+		std::cout << "serverPort: " << serverPort << std::endl;
 	}
 };
 
@@ -73,3 +86,4 @@ int							stringsCount(char **strings);
 void 						freeStrings2Star(char **strings);
 std::string					stringTrim(std::string &string, std::string const &delimeters);
 std::vector<std::string>	split(std::string const &string, char delimeter);
+char						*stringTosChar(std::string const &string);

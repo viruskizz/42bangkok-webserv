@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 18:57:45 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/09 13:23:32 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/12 13:04:37 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,17 @@ class RequestHeader
 		std::string const				&getFetchDest(void) const;
 		std::string const				&getReferer(void) const;
 		std::vector<std::string> const	&getEncode(void) const;
+		std::string const				&getAgent(void) const;
+		std::string const				&getInsecure(void) const;
+		std::string const				&getAcceptStr(void) const;
+		std::string const				&getEncodeStr(void) const;
+		std::string const				&getLanguageStr(void) const;
+		// std::vector<std::string>	_range;
+		// std::string					_rangeStr;
+		// std::string					_contentLength;
+		// std::string					_content;
+		std::string const				&getRangeStr(void) const;
+		std::vector<std::string> const	&getRange(void) const;
 
 
 		class CannotReadSocketException : public std::exception
@@ -70,12 +81,15 @@ class RequestHeader
 		std::vector<std::string>	_encode;
 		std::vector<std::string>	_language;
 		std::string					_connection;
-
 		std::string					_agent;
 		std::string					_insecure;
 		std::string					_acceptStr;
 		std::string					_encodeStr;
 		std::string					_languageStr;
+		std::vector<std::string>	_range;
+		std::string					_rangeStr;
+		std::string					_contentLength;
+		std::string					_content;
 };
 
 std::ostream	&operator<<(std::ostream &out, RequestHeader const &rhs);

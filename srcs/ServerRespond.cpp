@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 20:36:46 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/09 20:58:34 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/12 15:51:28 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,15 +17,17 @@ static int			initBodyContent(RequestHeader const &request, Config const &server,
 static std::string	initStatusCode(int code);
 static int			initHeaderLength(ServerRespond const &respond);
 static int			execCommondGetwayInterface(RequestHeader const &request, Config const &server, char **content);
+static int			methodGET(RequestHeader const &request, Config const &server, char **body, int *length);
+static int			initHeader(ServerRespond &respond, RequestHeader const &request);
 
 ServerRespond::ServerRespond(void) :
-_request(), _contentType(""), _statusCode(""), _httpVersion("HTTP/1.1 "), _bodyContent(NULL), _contentLength(0), _headerLength(0), _cgi(0), _code(0)
+_request(), _contentType(""), _statusCode(""), _httpVersion("HTTP/1.1 "), _bodyContent(NULL), _contentLength(0), _headerLength(0), _cgi(0), _code(0), _respondHeader("")
 {
 	std::cout << "(ServerRespond) Defualt constructor is called." << std::endl;
 }
 
 ServerRespond::ServerRespond(int fd, Config const &server) :
-_request(fd), _contentType(""), _statusCode(""), _httpVersion("HTTP/1.1 "), _bodyContent(NULL), _contentLength(0), _headerLength(0), _cgi(0), _code(200)
+_request(fd), _contentType(""), _statusCode(""), _httpVersion("HTTP/1.1 "), _bodyContent(NULL), _contentLength(0), _headerLength(0), _cgi(0), _code(200), _respondHeader("")
 {
 	std::cout << "(ServerRespond) Constructor is called." << std::endl;
 	if (this->_request.getUrl().find("/cgi-bin/") != std::string::npos)
@@ -33,22 +35,25 @@ _request(fd), _contentType(""), _statusCode(""), _httpVersion("HTTP/1.1 "), _bod
 		this->_contentLength = execCommondGetwayInterface(this->_request, server, &this->_bodyContent);
 		if (this->_contentLength >= 0)
 			this->_cgi = true;
+		else
+			std::cout << "set error page with errno" << std::endl;
 	}
 	else
 	{
 		this->_contentType = initContentType(this->_request.getUrl());
-		this->_contentLength = initBodyContent(this->_request, server, &this->_bodyContent);
-		if (this->_contentLength >= 0)
-		{
-			this->_statusCode = initStatusCode(this->_code);
-			this->_headerLength = initHeaderLength(*this);
-		}
+		if (_request.getMetthod() == "GET")
+			this->_code = methodGET(this->_request, server, &this->_bodyContent, &this->_contentLength);
+		// else if (_request.getMetthod() == "POST")
+		// 	this->_code = methodPOST(this->_request, server, &this->_bodyContent, &this->_contentLength);
+		// else if (_request.getMetthod() == "DELETE")
+		// 	this->_code = methodDELETE();
 		else
-		{
-			this->_headerLength = initHeaderLength(*this);
-			this->_contentLength = 0;
-			std::cout << "Some error" << std::endl;
-		}
+			this->_code = 405;
+	}
+	if (!this->_cgi)
+	{
+		this->_statusCode = initStatusCode(this->_code);
+		this->_headerLength = initHeader(*this, this->_request);
 	}
 }
 
@@ -76,14 +81,12 @@ ServerRespond	&ServerRespond::operator=(ServerRespond const &rhs)
 		this->_httpVersion = rhs._httpVersion;
 		this->_contentLength =  rhs._contentLength;
 		this->_headerLength = rhs._headerLength;
+		this->_code = rhs._code;
+		this->_cgi = rhs._cgi;
 		if (this->_bodyContent)
 			delete [] this->_bodyContent;
-		this->_bodyContent = new char[rhs._contentLength];
 		if (rhs._bodyContent)
-		{
-			for (int i = 0; i < rhs._contentLength; ++i)
-				this->_bodyContent[i] = rhs._bodyContent[i];
-		}
+			this->_bodyContent = stringDuplicate(rhs._bodyContent);
 		else
 			this->_bodyContent = NULL;
 	}
@@ -135,7 +138,7 @@ void	ServerRespond::sendRepond(int socket) const
 	if (this->_cgi)
 		write(socket, this->_bodyContent, this->_contentLength);
 	else
-		write(socket, this->getRespond().c_str(), this->getRespondLength());
+		write(socket, this->getRespond().c_str(), this->_headerLength + this->_contentLength);
 	
 }
 
@@ -143,14 +146,39 @@ std::string	ServerRespond::getRespond(void) const
 {
 	std::string	serverRespond;
 
-	serverRespond.clear();
-	serverRespond += this->_httpVersion + this->_statusCode + BREAK_LINE; 
-	serverRespond += "Content-Type: " + this->_contentType + BREAK_LINE; 
-	serverRespond += "Content-Length: " + intToString(this->_contentLength) + BREAK_LINE; 
-	serverRespond += BREAK_LINE;
+	serverRespond = this->_respondHeader;
+	std::cout << this->_respondHeader <<std::endl;
 	for (int i = 0; i < this->_contentLength; ++i)
 		serverRespond.append(1, this->_bodyContent[i]);
 	return (serverRespond);
+}
+
+void	ServerRespond::setRespondHeader(std::string const &respondHeader)
+{
+	this->_respondHeader = respondHeader;
+}
+
+int		ServerRespond::getCode(void) const
+{
+	return (this->_code);
+}
+
+static int	initHeader(ServerRespond &respond, RequestHeader const &request)
+{
+	std::string	respondHeader;
+
+	respondHeader.clear();
+	respondHeader += respond.getHttpVersion() + respond.getStatusCode() + BREAK_LINE; 
+	respondHeader += "Content-Type: " + respond.getContentType() + BREAK_LINE; 
+	if (respond.getBodyLength() >= 0)
+		respondHeader += "Content-Length: " + intToString(respond.getBodyLength()) + BREAK_LINE;
+	if (respond.getCode() == 405)
+		respondHeader += std::string("Allow: GET, POST, DELETE") + BREAK_LINE;
+	if (request.getRangeStr().size())
+		respondHeader += "Content-Range: bytes " + request.getRangeStr() + "/*" + BREAK_LINE;
+	respondHeader += BREAK_LINE;
+	respond.setRespondHeader(respondHeader);
+	return (respondHeader.size());
 }
 
 std::ostream	&operator<<(std::ostream &out, ServerRespond const &rhs)
@@ -169,6 +197,57 @@ std::ostream	&operator<<(std::ostream &out, ServerRespond const &rhs)
 
 static int	getFileDiscriptor(RequestHeader const &request, Config const &server);
 
+static int methodGET(RequestHeader const &request, Config const &server, char **body, int *length)
+{
+	char						*content;
+	std::vector<std::string>	splited;
+	int							start;
+	int							end;
+	int							size;
+
+	*length = initBodyContent(request, server, body);
+	if (*length == -1)
+		return (404);
+	if (request.getRangeStr().size())
+	{
+		content = *body;
+		// for (std::vector<std::string>::iterator it = request.getRange().begin();
+			// it != request.getRange().end(); ++it)
+		{
+			splited = split(request.getRange()[0], '-');
+			start = stringToint(splited[0]);
+			end = stringToint(splited[1]);
+			if (start < 0 || start > *length || start > end || end < 0 || end > *length)
+				return (200);
+			size = end - start;
+			*body = new char[size + 1];
+			for (int i = start; i < end; ++i)
+				*body[i] = content[i];
+			delete [] content;
+			*length = size;
+		}
+		return(206);
+	}
+ 	return (200);
+}
+
+// static int	methodPOST(RequestHeader const &request, Config const &server, char **body, int *length)
+// {
+// 	if (request.getContentType() == "application/x-www-form-urlencoded")
+// 	{
+// 		return (200);
+// 	}
+// 	else if (request.getContentType() == "multipart/form-data")
+// 	{
+
+// 	}
+// 	else if (request.getContentType() == "text/plain")
+// 	{
+
+// 	}
+// 	return (405);
+// }
+
 static int initBodyContent(RequestHeader const &request, Config const &server, char **body)
 {
 	char	*buffer;
@@ -177,7 +256,6 @@ static int initBodyContent(RequestHeader const &request, Config const &server, c
 	int		fd;
 
 	bodySize = 0;
-	buffer = new char[READSIZE + 1];
 	fd = getFileDiscriptor(request, server);
 	if (fd < 0)
 	{
@@ -185,6 +263,17 @@ static int initBodyContent(RequestHeader const &request, Config const &server, c
 		std::cout << "errno: " << errno << std::endl;
 		return (-1);
 	}
+	buffer = new char[READSIZE + 1];
+	while (true)
+	{
+		readByte = read(fd, buffer, READSIZE);
+		buffer[readByte] = '\0';
+		if (readByte <= 0)
+			break ;
+		*body = strjoin(*body,bodySize, buffer, readByte, SJ_FFIR);
+		bodySize += readByte;
+	}
+	delete [] buffer;
 	close(fd);
 	return (bodySize);
 }
@@ -223,33 +312,12 @@ static int	getFileDiscriptor(RequestHeader const &request, Config const &server)
 
 extern char **environ;
 
-// * set environment variable
-/*
-* SERVER_PROTOCOL: HTTP/version.																"HTTP/1.1"
-* SERVER_PORT: TCP port (decimal).																"8080"
-* REQUEST_METHOD: name of HTTP method (see above).												"GET"
-* PATH_INFO: path suffix, if appended to URL after program name and a slash.			"/Users/.../webserv_42/html/cgi-bin/foo/bar"
-* PATH_TRANSLATED: corresponding full path as supposed by server, if PATH_INFO is present.		"/foo/bar"
-* SCRIPT_NAME: relative path to the program, like /cgi-bin/script.cgi.							"/cgi-bin/script.cgi"
-* QUERY_STRING: the part of URL after the "?" character. The query string may be composed of *name=value pairs separated with * ampersands (such as var1=val1&var2=val2...) when used to submit form data transferred via GET method as defined by HTML application/ * x-www-form-urlencoded.																		"var1=val1&var2=val2"
-? REMOTE_HOST: host name of the client, unset if server did not perform such lookup.
-? REMOTE_ADDR: IP address of the client (dot-decimal).
-? AUTH_TYPE: identification type, if applicable.
-? REMOTE_USER used for certain AUTH_TYPEs.
-? REMOTE_IDENT: see ident, only if server performed such lookup.
-? CONTENT_TYPE: Internet media type of input data if PUT or POST method are used, as provided via HTTP header.
-? CONTENT_LENGTH: similarly, size of input data (decimal, in octets) if provided via HTTP header.
-* Variables passed by user agent (HTTP_ACCEPT, HTTP_ACCEPT_LANGUAGE, HTTP_USER_AGENT, HTTP_COOKIE and possibly others) contain values of corresponding HTTP headers and therefore have the same sense.
-*/
-
-extern char **environ;
-
 static std::string	getExecutorLanguage(t_CGI scriptURI);
 static char			**getExecutorPath(std::string const &exceLanguage, t_CGI const &scriptURI);
 static t_CGI		initScriptURI(std::string const &url, RequestHeader const &request);
 static int			pathExecutor(char **execPath, Config const &server,  t_CGI const &scriptURI, RequestHeader const &request);
-static int			setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, RequestHeader const &request);
 static int			readFile(int fd, char **content);
+static bool			contentHeaderCheck(char *content);
 
 static int	execCommondGetwayInterface(RequestHeader const &request, Config const &server, char **content)
 {
@@ -271,14 +339,10 @@ static int	execCommondGetwayInterface(RequestHeader const &request, Config const
 		return (-1);
 	}
 	fd = pathExecutor(executePath, server, scriptURI, request);
-	std::cout << "hello" << std::endl;
 	if (fd == -1)
 		exit (-1);
 	contentSize = readFile(fd, content);
 	close(fd);
-	// TODO check content of CGI //
-	std::cout << *content  << std::endl;
-	// exit(1);
 	return (contentSize);
 }
 
@@ -328,9 +392,11 @@ static char	**getExecutorPath(std::string const &exceLanguage, t_CGI const &scri
 	if (it == splitedPath.end())
 		return (NULL);
 	execPath = stringAdd(execPath, const_cast<char*>(path.c_str()), SA_NONE);
-	execPath = stringAdd(execPath, const_cast<char*>(scriptURI.pathTranslated .c_str()), SA_NONE);
+	execPath = stringAdd(execPath, const_cast<char*>(scriptURI.pathFileName.c_str()), SA_NONE);
 	return (execPath);
 }
+
+static int	getFileIndex(std::string const &url, std::vector<std::string> &pathSplited);
 
 static t_CGI	initScriptURI(std::string const &url, RequestHeader const &request)
 {
@@ -340,22 +406,25 @@ static t_CGI	initScriptURI(std::string const &url, RequestHeader const &request)
 	std::vector<std::string>	splited;
 	int							fileIndex;
 
-	fileIndex = -1;
 	memset(&scriptURI, '\0', sizeof(t_CGI));
 	URISplited = split(url, '?');
 	if (URISplited.size() > 1)
-		scriptURI.query = URISplited[2];
-	pathSplited = split(URISplited[0], '/');
-	for (int i = 0; i < pathSplited.size(); ++i)
-	{
-		if (i != 1 && pathSplited[i].find('.') != std::string::npos)
-		{
-			fileIndex = i;
-			break ;
-		}
-	}
-	if (fileIndex == -1)
-		fileIndex = pathSplited.size() - 1;
+		scriptURI.query = URISplited[1];
+	fileIndex = getFileIndex(URISplited[0], pathSplited);
+	// pathSplited = split(URISplited[0], '/');
+	// for (int i = 0; i < pathSplited.size(); ++i)
+	// {
+	// 	if (i != 1 && pathSplited[i].find('.') != std::string::npos)
+	// 	{
+	// 		fileIndex = i;
+	// 		break ;
+	// 	}
+	// }
+	// if (fileIndex == -1)
+	// {
+	// 	fileIndex = pathSplited.size() - 1;
+	//
+	// }
 	scriptURI.protocol = "HTTP/1.1";
 	scriptURI.scheme = "http";
 	scriptURI.method = request.getMetthod();
@@ -378,14 +447,40 @@ static t_CGI	initScriptURI(std::string const &url, RequestHeader const &request)
 	return (scriptURI);
 }
 
+static int	getFileIndex(std::string const &url, std::vector<std::string> &pathSplited)
+{
+	int				fileIndex;
+	DIR				*directory;
+	std::string		path;
+
+	fileIndex = -1;
+	path.clear();
+	pathSplited = split(url, '/');
+	path += ROOT;
+	for (int i = 0; i < pathSplited.size(); ++i)
+	{
+		path += "/" + pathSplited[i];
+		directory = opendir(path.c_str());
+		if (!directory)
+		{
+			fileIndex = i;
+			break ;
+		}
+		closedir(directory);
+	}
+	if (fileIndex == -1)
+		fileIndex = pathSplited.size() - 1;
+	return (fileIndex);
+}
+
+static char			**setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, RequestHeader const &request);
+
 static int	pathExecutor(char **execPath, Config const &server, t_CGI const &scriptURI, RequestHeader const &request)
 {
 	int		fd[2];
 	pid_t	pid;
 	int		returnValue = 0;
 
-	if (!setEnvironmentVariable(server, scriptURI, request))
-			exit(1);
 	if (pipe(fd) < 0)
 	{
 		std::cerr << "ERROR: usuccess piped." << std::endl;
@@ -399,12 +494,10 @@ static int	pathExecutor(char **execPath, Config const &server, t_CGI const &scri
 	}
 	else if (!pid)
 	{
-		dup2(fd[1], STDOUT_FILENO);
-		close(fd[0]);
-		close(fd[1]);
-		// TODO set environment variables //
-		// if (!setEnvironmentVariable(server, scriptURI))
-		// 	exit(1);
+		if (dup2(fd[1], STDOUT_FILENO) == -1 || close(fd[0]) == -1 || close(fd[1] == -1))
+			exit(1);
+		environ = setEnvironmentVariable(server, scriptURI, request);
+		std::cerr << "executed" << std::endl;
 		execve(execPath[0], execPath, environ);
 		std::cerr << "ERORR: unsuccessful execve" << std::endl;
 		exit(1);
@@ -419,106 +512,129 @@ static int	pathExecutor(char **execPath, Config const &server, t_CGI const &scri
 	return (fd[0]);
 }
 
-//* Cache-Control: max-age=0
-//* sec-ch-ua: "Not.A/Brand";v="8", "Chromium";v="114", "Microsoft Edge";v="114"
-//* sec-ch-ua-mobile: ?0
-//* sec-ch-ua-platform: "macOS"
-//* Sec-Fetch-Site: none
-//* Sec-Fetch-Mode: navigate
-//* Sec-Fetch-User: ?1
-//* Sec-Fetch-Dest: document
-
 // CONTEXT_DOCUMENT_ROOT = /home/cgi101/public_html
 // CONTEXT_PREFIX = 
+//? AUTH_TYPE: identification type, if applicable.
+//? CONTENT_TYPE: Internet media type of input data if PUT or POST method are used, as provided via HTTP header.
+//? CONTENT_LENGTH: similarly, size of input data (decimal, in octets) if provided via HTTP header.
 
-//*  DOCUMENT_ROOT="C:/Program Files (x86)/Apache Software Foundation/Apache2.4/htdocs"
-//*  GATEWAY_INTERFACE="CGI/1.1"
-// Accept //*  HTTP_ACCEPT="text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-//  HTTP_ACCEPT_CHARSET="ISO-8859-1,utf-8;q=0.7,*;q=0.7"
-// Accept-Encoding //*  HTTP_ACCEPT_ENCODING="gzip, deflate, br"
-// Accept-Language //*  HTTP_ACCEPT_LANGUAGE="en-us,en;q=0.5"
-// Connection //*  HTTP_CONNECTION="keep-alive"
-//*  HTTP_HOST="example.com"
-//*  HTTP_REFERER = http://*www.cgi101.com/book/ch3/text.html
-// Upgrade-Insecure-Requests //*  HTTP_UPGRADE_INSECURE_REQUESTS = 1
-// User-Agent //*  HTTP_USER_AGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:67.0) Gecko/20100101 Firefox/67.0"
-//?  PATH_INFO="/foo/bar"
-//?  PATH_TRANSLATED="C:\Program Files (x86)\Apache Software Foundation\Apache2.4\htdocs\foo\bar"
-//?  QUERY_STRING="var1=value1&var2=with%20percent%20encoding"
-//*  REMOTE_ADDR="127.0.0.1"
-//*  REMOTE_PORT="63555"
-//?  REQUEST_METHOD="GET"
-//! REQUEST_SCHEME = http
-//*  REQUEST_URI="/cgi-bin/printenv.pl/foo/bar?var1=value1&var2=with%20percent%20encoding"
-//*  SCRIPT_FILENAME="C:/Program Files (x86)/Apache Software Foundation/Apache2.4/cgi-bin/printenv.pl"
-//*  SCRIPT_NAME="/cgi-bin/printenv.pl"
-//*  SERVER_ADDR="127.0.0.1"
-//  SERVER_ADMIN="(server admin's email address)"
-//*  SERVER_NAME="127.0.0.1"
-//*  SERVER_PORT="80"
-//*  SERVER_PROTOCOL="HTTP/1.1"
-
-
-static int	setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, RequestHeader const &request)
+char	**setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, RequestHeader const &request)
 {
-	char	**environment;
+	char		**cgiEnviron;
+	int			index;
 
-	environment = stringAdd(environ, NULL, SA_NONE);
-	// Accept //*  HTTP_ACCEPT="text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-
+	index = 0;
+	cgiEnviron = new char * [stringsCount(environ) + 18];
+	while (environ[index])
+	{
+		cgiEnviron[index] = environ[index];
+		index++;
+	}
+	// Accept //  HTTP_ACCEPT="text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+	cgiEnviron[index++] = stringTosChar("HTTP_ACCEPT=" + request.getAcceptStr());
 	//  HTTP_ACCEPT_CHARSET="ISO-8859-1,utf-8;q=0.7,*;q=0.7"
-	// Accept-Encoding //*  HTTP_ACCEPT_ENCODING="gzip, deflate, br"
-
-	// Accept-Language //*  HTTP_ACCEPT_LANGUAGE="en-us,en;q=0.5"
-	
+	// Accept-Encoding //  HTTP_ACCEPT_ENCODING="gzip, deflate, br"
+	cgiEnviron[index++] = stringTosChar("HTTP_ACCEPT_ENCODING=" + request.getEncodeStr());
+	// Accept-Language //  HTTP_ACCEPT_LANGUAGE="en-us,en;q=0.5"
+	cgiEnviron[index++] = stringTosChar("HTTP_ACCEPT_LANGUAGE=" + request.getLanguageStr());
 	// Connection //  HTTP_CONNECTION="keep-alive"
-	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_CONNECTION=" + request.getConnection()).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("HTTP_CONNECTION=" + request.getConnection());
 	//  HTTP_HOST="example.com"
-	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_HOST=" + scriptURI.serverName).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("HTTP_HOST=" + scriptURI.serverName);
 	//  HTTP_REFERER = http://www.cgi101.com/book/ch3/text.html
-	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_REFERER=" + request.getReferer()).c_str()), SA_FSTS);
-	//? Upgrade-Insecure-Requests //*  HTTP_UPGRADE_INSECURE_REQUESTS = 1
-
-	//? User-Agent //*  HTTP_USER_AGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:67.0) Gecko/20100101 Firefox/67.0"
-
+	cgiEnviron[index++] = stringTosChar("HTTP_REFERER=" + request.getReferer());
+	// Upgrade-Insecure-Requests //  HTTP_UPGRADE_INSECURE_REQUESTS = 1
+	cgiEnviron[index++] = stringTosChar("HTTP_UPGRADE_INSECURE_REQUESTS=" + request.getInsecure());
+	// User-Agent //  HTTP_USER_AGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:67.0) Gecko/20100101 Firefox/67.0"
+	cgiEnviron[index++] = stringTosChar("HTTP_USER_AGENT=" + request.getAgent());
 	//  PATH_INFO="/foo/bar"
-	environment = stringAdd(environment, const_cast<char *>(std::string("PATH_INFO=" + scriptURI.pathInfo).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("PATH_INFO=" + scriptURI.pathInfo);
 	//  PATH_TRANSLATED="C:\Program Files (x86)\Apache Software Foundation\Apache2.4\htdocs\foo\bar"
-	environment = stringAdd(environment, const_cast<char *>(std::string("PATH_TRANSLATED=" + scriptURI.pathTranslated).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("PATH_TRANSLATED=" + scriptURI.pathTranslated);
 	//  QUERY_STRING="var1=value1&var2=with%20percent%20encoding"
-	environment = stringAdd(environment, const_cast<char *>(std::string("QUERY_STRING=" + scriptURI.query).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("QUERY_STRING=" + scriptURI.query);
 	//*  REMOTE_ADDR="127.0.0.1"
 
 	//*  REMOTE_PORT="63555"
 
 	//  REQUEST_METHOD="GET"
-	environment = stringAdd(environment, const_cast<char *>(std::string("REQUEST_METHOD=" + scriptURI.method).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("REQUEST_METHOD=" + scriptURI.method);
 	// REQUEST_SCHEME = http
-	environment = stringAdd(environment, const_cast<char *>(std::string("REQUEST_SCHEME=" + scriptURI.scheme).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("REQUEST_SCHEME=" + scriptURI.scheme);
 	// Url //  REQUEST_URI="/cgi-bin/printenv.pl/foo/bar?var1=value1&var2=with%20percent%20encoding"
-	environment = stringAdd(environment, const_cast<char *>(std::string("REQUEST_URI=" + request.getUrl()).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("REQUEST_URI=" + request.getUrl());
 	//  SCRIPT_FILENAME="C:/Program Files (x86)/Apache Software Foundation/Apache2.4/cgi-bin/printenv.pl"
-	environment = stringAdd(environment, const_cast<char *>(std::string("SCRIPT_FILENAM=" + scriptURI.pathFileName).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("SCRIPT_FILENAM=" + scriptURI.pathFileName);
 	//  SCRIPT_NAME="/cgi-bin/printenv.pl"
-	environment = stringAdd(environment, const_cast<char *>(std::string("SCRIPT_NAME=" + scriptURI.scriptName).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("SCRIPT_NAME=" + scriptURI.scriptName);
 	//*  SERVER_ADDR="127.0.0.1"
-	
+
 	//  SERVER_ADMIN="(server admin's email address)"
 	//*  SERVER_NAME="127.0.0.1"
 
 	//  SERVER_PORT="80"
-	environment = stringAdd(environment, const_cast<char *>(std::string("SERVER_PORT=" + scriptURI.serverPort).c_str()), SA_FSTS);
+	cgiEnviron[index++] = stringTosChar("SERVER_PORT=" + scriptURI.serverPort);
 	//  SERVER_PROTOCOL="HTTP/1.1"
-	environment = stringAdd(environment, const_cast<char *>(std::string("SERVER_PROTOCOL=" + scriptURI.protocol).c_str()), SA_FSTS);
-
-
-
-	// for (int i = 0; environment[i]; ++i)
-	// 	std::cout << environment[i] << std::endl;
-
-	// exit (1);
-	return (1);
+	cgiEnviron[index++] = stringTosChar("SERVER_PROTOCOL=" + scriptURI.protocol);
+	cgiEnviron[index] = NULL;
+	return (cgiEnviron);
 }
+
+
+// static int	setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, RequestHeader const &request)
+// {
+// 	char	**environment;
+//
+// 	environment = stringAdd(environ, NULL, SA_NONE);
+// 	// Accept //  HTTP_ACCEPT="text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_ACCEPT=" + request.getAcceptStr()).c_str()), SA_FSTS);
+// 	//  HTTP_ACCEPT_CHARSET="ISO-8859-1,utf-8;q=0.7,*;q=0.7"
+// 	// Accept-Encoding //  HTTP_ACCEPT_ENCODING="gzip, deflate, br"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_ACCEPT_ENCODING=" + request.getEncodeStr()).c_str()), SA_FSTS);
+// 	// Accept-Language //  HTTP_ACCEPT_LANGUAGE="en-us,en;q=0.5"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_ACCEPT_LANGUAGE=" + request.getLanguageStr()).c_str()), SA_FSTS);
+// 	// Connection //  HTTP_CONNECTION="keep-alive"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_CONNECTION=" + request.getConnection()).c_str()), SA_FSTS);
+// 	//  HTTP_HOST="example.com"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_HOST=" + scriptURI.serverName).c_str()), SA_FSTS);
+// 	//  HTTP_REFERER = http://www.cgi101.com/book/ch3/text.html
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_REFERER=" + request.getReferer()).c_str()), SA_FSTS);
+// 	// Upgrade-Insecure-Requests //  HTTP_UPGRADE_INSECURE_REQUESTS = 1
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_UPGRADE_INSECURE_REQUESTS=" + request.getInsecure()).c_str()), SA_FSTS);
+// 	// User-Agent //  HTTP_USER_AGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:67.0) Gecko/20100101 Firefox/67.0"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("HTTP_USER_AGENT=" + request.getAgent()).c_str()), SA_FSTS);
+// 	//  PATH_INFO="/foo/bar"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("PATH_INFO=" + scriptURI.pathInfo).c_str()), SA_FSTS);
+// 	//  PATH_TRANSLATED="C:\Program Files (x86)\Apache Software Foundation\Apache2.4\htdocs\foo\bar"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("PATH_TRANSLATED=" + scriptURI.pathTranslated).c_str()), SA_FSTS);
+// 	//  QUERY_STRING="var1=value1&var2=with%20percent%20encoding"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("QUERY_STRING=" + scriptURI.query).c_str()), SA_FSTS);
+// 	//*  REMOTE_ADDR="127.0.0.1"
+//
+// 	//*  REMOTE_PORT="63555"
+//
+// 	//  REQUEST_METHOD="GET"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("REQUEST_METHOD=" + scriptURI.method).c_str()), SA_FSTS);
+// 	// REQUEST_SCHEME = http
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("REQUEST_SCHEME=" + scriptURI.scheme).c_str()), SA_FSTS);
+// 	// Url //  REQUEST_URI="/cgi-bin/printenv.pl/foo/bar?var1=value1&var2=with%20percent%20encoding"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("REQUEST_URI=" + request.getUrl()).c_str()), SA_FSTS);
+// 	//  SCRIPT_FILENAME="C:/Program Files (x86)/Apache Software Foundation/Apache2.4/cgi-bin/printenv.pl"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("SCRIPT_FILENAM=" + scriptURI.pathFileName).c_str()), SA_FSTS);
+// 	//  SCRIPT_NAME="/cgi-bin/printenv.pl"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("SCRIPT_NAME=" + scriptURI.scriptName).c_str()), SA_FSTS);
+// 	//*  SERVER_ADDR="127.0.0.1"
+//
+// 	//  SERVER_ADMIN="(server admin's email address)"
+// 	//*  SERVER_NAME="127.0.0.1"
+//
+// 	//  SERVER_PORT="80"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("SERVER_PORT=" + scriptURI.serverPort).c_str()), SA_FSTS);
+// 	//  SERVER_PROTOCOL="HTTP/1.1"
+// 	environment = stringAdd(environment, const_cast<char *>(std::string("SERVER_PROTOCOL=" + scriptURI.protocol).c_str()), SA_FSTS);
+// 	environ = environment;
+// 	return (1);
+// }
 
 static int	readFile(int fd, char **content)
 {
@@ -531,6 +647,7 @@ static int	readFile(int fd, char **content)
 	while (true)
 	{
 		readByte = read(fd, buffer, READSIZE);
+		buffer[readByte] = '\0';
 		if (readByte <= 0)
 			break ;
 		*content = strjoin(*content, contentSize, buffer, readByte, SJ_FFIR);
@@ -538,18 +655,6 @@ static int	readFile(int fd, char **content)
 	}
 	delete [] buffer;
 	return (contentSize);
-}
-
-static int	initHeaderLength(ServerRespond const &respond)
-{
-	std::string	respondHeader;
-
-	respondHeader.clear();
-	respondHeader += respond.getHttpVersion() + respond.getStatusCode() + BREAK_LINE; 
-	respondHeader += "Content-Type: " + respond.getContentType() + BREAK_LINE; 
-	respondHeader += "Content-Length: " + intToString(respond.getBodyLength()) + BREAK_LINE; 
-	respondHeader += BREAK_LINE;
-	return (respondHeader.size());
 }
 
 static std::string	initStatusCode(int code)
