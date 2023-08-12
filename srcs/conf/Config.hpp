@@ -15,10 +15,11 @@ private:
 	void	setConfig(std::string, std::ifstream &);
 	void	setServerConf(std::string, std::ifstream &);
 
-	std::string 			m_filename;
-	std::string				m_filedata;
-	std::string				m_index;
-	std::vector<ServerConf> m_servers;
+	std::string 				m_filename;
+	std::string					m_filedata;
+	std::vector<std::string>	m_index;
+	// char						*m_index;
+	std::vector<ServerConf *>	m_servers;
 
 public:
 	Config(void);
@@ -27,6 +28,10 @@ public:
 
 	std::string getFiledata(void) const;
 	std::string getFilename(void) const;
+
+	// * sharnvon added
+	std::vector<ServerConf*> const	&getServer(void) const;
+	std::vector<std::string> const	&getIndex(void) const;
 
 	class FileNotFoundException: public std::exception {
 		public:
