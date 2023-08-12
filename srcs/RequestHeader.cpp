@@ -17,7 +17,7 @@
 static void						printVector(std::vector<std::string> const &vector);
 
 RequestHeader::RequestHeader(void) :
-_method(""), _url(""), _version(""), _host(""), _port(""), _mobile(-1), _platform(""), _fetchSite(""), _fetchMode(""), _fetchDest(""), _referer(""), _connection(""), _agent(""), _insecure(""), _acceptStr(""), _encodeStr(""), _languageStr("")
+_method(""), _url(""), _version(""), _host(""), _port(""), _mobile(-1), _platform(""), _fetchSite(""), _fetchMode(""), _fetchDest(""), _referer(""), _connection(""), _agent(""), _insecure(""), _acceptStr(""), _encodeStr(""), _languageStr(""), _contentLength(""), _content("")
 {
 	std::cout << "(RequestHeader) Defualt constructor is called." << std::endl;
 }
@@ -39,6 +39,7 @@ _method(""), _url(""), _version(""), _host(""), _port(""), _mobile(-1), _platfor
 //? Accept-Language: en-US,en;q=0.9                                                 | <Language>;q=<Q-Factor-Weighting>,...
 // TODO POST<body>Medthod.
 
+// TODO line:52 fix it read propery
 RequestHeader::RequestHeader(int socket)
 {
 	std::vector<std::string>	request;
@@ -52,7 +53,20 @@ RequestHeader::RequestHeader(int socket)
 	if (readByte < 0)
 		throw (RequestHeader::CannotReadSocketException());
 	buffer[readByte] = '\0';
-	std::cout << buffer << std::endl;
+
+	// struct sockaddr_in		addr;
+	// socklen_t				len;
+
+	// len = sizeof(addr);
+	// memset(&addr, '\0', len);
+
+	// getsockname(socket, (struct sockaddr *)&addr, &len);
+
+	// std::cout << ntohs(addr.sin_port) << std::endl;
+	// // std::cout << ntohl(addr.sin_addr.s_addr) << std::endl;
+	// std::cout << inet_ntoa(addr.sin_addr) << std::endl;
+	// exit(1);
+
 	// * print buffer;
 	// std::cout << "print buffer" << std::endl;
 	// std::cout << buffer << std::endl;
@@ -97,13 +111,12 @@ RequestHeader::RequestHeader(int socket)
 		}
 		else if (!line[0].compare("User-Agent:"))
 		{
-			this->_agent.clear();
-			if (line.size() > 1)
-				this->_agent += line[1];
-			for (int i = 2; i < line.size(); ++i)
-				this->_agent += " " + line[i];
-			std::cout << this->_agent << std::endl;
-			// exit(1);
+			for (int i = 1; i < line.size();)
+			{
+				this->_agent += line[i++];
+				if (i < line.size())
+					this->_agent += " ";
+			}
 		}
 		else if (!line[0].compare("sec-ch-ua-platform:"))
 		{
@@ -132,11 +145,14 @@ RequestHeader::RequestHeader(int socket)
 			this->_referer = line[1];
 		else if (!line[0].compare("Accept-Encoding:"))
 		{
+			this->_encodeStr.clear();
 			for (std::vector<std::string>::iterator it = line.begin() + 1;
 				it != line.end(); ++it)
 			{
+				this->_encodeStr += *it;
 				for (size_t pos; (*it).find(',') != std::string::npos;)
 				{
+					this->_encodeStr += " ";
 					pos = (*it).find(',');
 					(*it).erase(pos, 1);
 				}
@@ -145,6 +161,7 @@ RequestHeader::RequestHeader(int socket)
 		}
 		else if (!line[0].compare("Accept-Language:"))
 		{
+			this->_languageStr = line[1];
 			subLine = split(line[1], ',');
 			for (std::vector<std::string>::iterator it = subLine.begin();
 				it != subLine.end(); ++it)
@@ -152,6 +169,15 @@ RequestHeader::RequestHeader(int socket)
 		}
 		else if (!line[0].compare("Upgrade-Insecure-Requests:"))
 			this->_insecure = line[1];
+		else if (!line[0].compare("Range:"))
+		{
+			subLine = split(line[1], '=');
+			this->_rangeStr = subLine[1];
+			subLine = split(subLine[1], ',');
+			for (std::vector<std::string>::iterator it = subLine.begin();
+				it != subLine.end(); ++it)
+				this->_range.push_back(stringTrim(*it, " "));
+		}
 		line.clear();
 		subLine.clear();
 	}
@@ -206,7 +232,7 @@ RequestHeader::RequestHeader(int socket)
 // 		line += buffer;
 // 	}
 // }
-
+//
 // /*
 // * [utility_function] funciton spliting word from string with delimeter and return by vector\<std::string\>.
 // * • empty-string    -> empty_vector.
@@ -218,7 +244,7 @@ RequestHeader::RequestHeader(int socket)
 // 	std::vector<std::string>	result;
 // 	std::string					word;
 // 	int							index;
-
+//
 // 	index = 0;
 // 	if (string == "")
 // 		return (result);
@@ -241,7 +267,7 @@ RequestHeader::RequestHeader(int socket)
 // 	}
 // 	return (result);
 // }
-
+//
 // /*
 // * [utility_function] funciton triming string from string with delimeter and return by std::string.
 // * • empty-string     -> string.
@@ -253,7 +279,7 @@ RequestHeader::RequestHeader(int socket)
 // 	std::string	result;
 // 	int			start;
 // 	int			end;
-
+//
 // 	start = 0;
 // 	end = 0;
 // 	result = "";
@@ -388,6 +414,42 @@ std::string const	&RequestHeader::getReferer(void) const
 {
 	return (this->_referer);
 }
+
+std::string const	&RequestHeader::getAgent(void) const
+{
+	return (this->_agent);
+}
+
+std::string const	&RequestHeader::getInsecure(void) const
+{
+	return (this->_insecure);
+}
+
+std::string const	&RequestHeader::getAcceptStr(void) const
+{
+	return (this->_acceptStr);
+}
+
+std::string const	&RequestHeader::getEncodeStr(void) const
+{
+	return (this->_encodeStr);
+}
+
+std::string const	&RequestHeader::getLanguageStr(void) const
+{
+	return (this->_languageStr);
+}
+
+std::string const	&RequestHeader::getRangeStr(void) const
+{
+	return (this->_rangeStr);
+}
+
+std::vector<std::string> const	&RequestHeader::getRange(void) const
+{
+	return (this->_range);
+}
+
 
 std::ostream	&operator<<(std::ostream &out, RequestHeader const &rhs)
 {

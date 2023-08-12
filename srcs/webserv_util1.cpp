@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:28:18 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/08 03:53:32 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/10 00:36:50 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,4 +249,22 @@ char	**stringAdd(char **strings, char *string, int mode)
 	if (mode == SA_FSTR || mode == SA_BOTH)
 		delete [] string;
 	return (newStrings);
+}
+
+char	*stringTosChar(std::string const &string)
+{
+	char	*result;
+	int		index;
+
+	index = 0;
+	if (string.empty())
+		return (NULL);
+	result = new char[string.size() + 1];
+	while (index < string.size())
+	{
+		result[index] = string[index];
+		index++;
+	}
+	result[index] = '\0';
+	return (result);
 }
