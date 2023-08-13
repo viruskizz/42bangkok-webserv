@@ -13,9 +13,9 @@ SRCS 		=	srcs/main.cpp \
 				srcs/conf/Config.cpp \
 				srcs/conf/ServerConf.cpp \
 				srcs/utils/StringUtil.cpp \
-				srcs/RequestHeader.cpp \
-				srcs/webserv_util1.cpp \
-				srcs/ServerRespond.cpp
+				srcs/utils/WebservUtil.cpp \
+				srcs/server/RequestHeader.cpp \
+				srcs/server/ServerRespond.cpp
 
 OBJS 		= $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 
