@@ -15,8 +15,8 @@
 
 # include <iostream>
 # include <vector>
-# include "Webserv.hpp"
-# include "./conf/Config.hpp"
+# include "../Webserv.hpp"
+# include "../conf/Config.hpp"
 # include "RequestHeader.hpp"
 
 class ServerRespond
