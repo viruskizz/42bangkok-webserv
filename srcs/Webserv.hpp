@@ -18,6 +18,7 @@
 # include <csignal>
 # include <sys/types.h>
 # include <sys/wait.h>
+# include <vector>
 
 // #include <iostream>
 # define BREAK_LINE (char *)"\r\n"
