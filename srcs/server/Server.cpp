@@ -112,8 +112,6 @@ void Server::start(void)
 				{
 					std::cout << "********** Sending Respond to Client **********" << std::endl;
 					fcntl(socket, F_SETFL, O_NONBLOCK);
-					ServerRequest request = Request();
-					// config.map(request);
 					ServerRespond respond(socket, *configFile);
 					respond.sendRepond(socket);
 					// write(socket, respond.getRespond().c_str(), respond.getRespondLength());
