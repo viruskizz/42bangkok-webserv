@@ -13,7 +13,7 @@
 # include <netdb.h>
 # include <fcntl.h>
 # include <cstdio>
-# include "./server/RequestHeader.hpp"
+# include "./server/HttpRequest.hpp"
 # include <cstdlib>
 # include <csignal>
 # include <sys/types.h>
@@ -23,8 +23,8 @@
 # define BREAK_LINE (char *)"\r\n"
 # define READSIZE 100000
 # define HTTP (char *)"HTTP/1.1 "
-// # define ROOT (char *)"/Users/shivarakii/Documents/42_coding/webserv_42/html"
-# define ROOT (char *)"/home/araiva/42bangkok/webserv/html"
+# define ROOT (char *)"/Users/shivarakii/Documents/42_coding/webserv_42/html"
+// # define ROOT (char *)"/home/araiva/42bangkok/webserv/html"
 /*
 * macro for exitWithError() EE_PERR with perror() | EE_NONE just string*/
 # define EE_PERR 1

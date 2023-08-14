@@ -1,6 +1,6 @@
 #include "Webserv.hpp"
 #include "ServerRespond.hpp"
-#include "RequestHeader.hpp"
+#include "HttpRequest.hpp"
 // #include <netdb.h>
 
 std::vector<int>				serverSocket;
@@ -89,7 +89,7 @@ static void	signalHandle(int signalNumber)
 // 	// std::cout << serverRespond << std::endl;
 // 	// close(socket);
 // 	// return (0);
-// 	RequestHeader	clientRequest(socket);
+// 	HttpRequest	clientRequest(socket);
 //
 // 	// * moving into server directory
 // 	// * check client request while port and file is request

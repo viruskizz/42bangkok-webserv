@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   RequestHeader.cpp                                         :+:      :+:    :+:   */
+/*   HttpRequest.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,16 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "RequestHeader.hpp"
+#include "HttpRequest.hpp"
 
 // static std::vector<std::string>	split(std::string const &string, char dilimeter);
 // static std::string				stringTrim(std::string &string, std::string const &delimeters);
 static void						printVector(std::vector<std::string> const &vector);
 
-RequestHeader::RequestHeader(void) :
+HttpRequest::HttpRequest(void) :
 _method(""), _url(""), _version(""), _host(""), _port(""), _mobile(-1), _platform(""), _fetchSite(""), _fetchMode(""), _fetchDest(""), _referer(""), _connection(""), _agent(""), _insecure(""), _acceptStr(""), _encodeStr(""), _languageStr(""), _contentLength(""), _content("")
 {
-	std::cout << "(RequestHeader) Defualt constructor is called." << std::endl;
+	std::cout << "(HttpRequest) Defualt constructor is called." << std::endl;
 }
  
 // ? GET /favicon.ico HTTP/1.1                                                      | <Medthod> <URL> <Version>;
@@ -40,50 +40,40 @@ _method(""), _url(""), _version(""), _host(""), _port(""), _mobile(-1), _platfor
 // TODO POST<body>Medthod.
 
 // TODO line:52 fix it read propery
-RequestHeader::RequestHeader(int socket)
+HttpRequest::HttpRequest(int socket)
 {
 	std::vector<std::string>	request;
 	std::vector<std::string>	line;
 	std::vector<std::string>	subLine;
-	char						buffer[10000];
+	char						buffer[100000];
 	int							readByte;
 
-	std::cout << "(RequestHeader) Constructor is called." << std::endl;
-	readByte = read(socket, buffer, 9999);
-	if (readByte < 0)
-		throw (RequestHeader::CannotReadSocketException());
-	buffer[readByte] = '\0';
-
-	// struct sockaddr_in		addr;
-	// socklen_t				len;
-
-	// len = sizeof(addr);
-	// memset(&addr, '\0', len);
-
-	// getsockname(socket, (struct sockaddr *)&addr, &len);
-
-	// std::cout << ntohs(addr.sin_port) << std::endl;
-	// // std::cout << ntohl(addr.sin_addr.s_addr) << std::endl;
-	// std::cout << inet_ntoa(addr.sin_addr) << std::endl;
-	// exit(1);
-
+	std::cout << "(HttpRequest) Constructor is called." << std::endl;
+	
+	// readByte = read(socket, buffer, READSIZE);
+	// if (readByte < 0)
+	// 	throw (HttpRequest::CannotReadSocketException());
+	// buffer[readByte] = '\0';
+	// std::cout << buffer << std::endl;
+	this->readSocket(socket);
+	this->requestPaser();
 	// * print buffer;
 	// std::cout << "print buffer" << std::endl;
 	// std::cout << buffer << std::endl;
 	{
-		std::string stringBuff(buffer);
+		std::string stringBuff(this->_raw);
 		request = split(stringTrim(stringBuff, " \t\n\v\f\r"), '\n');
 	}
 	// * print request;
 	// std::cout << "print request" << std::endl;
 	// for (std::vector<std::string>::iterator it = request.begin();
 	// 	it != request.end(); ++it)
-	// 	std::cout << *it <<std::endl;
+	// 	// std::cout << "|" << *it << "|" << std::endl;
 	// std::cout << std::endl;
 	for (std::vector<std::string>::iterator iterator = request.begin(); 
 		 iterator != request.end(); ++iterator)
 	{
-		line = split(stringTrim(*iterator, " \t\n\v\f\r"), ' ');
+		line = split(stringTrim(*iterator, " \t\r\n\v\f"), ' ');
 		if (!line[0].compare("GET") || !line[0].compare("POST") || !line[0].compare("DELETE"))
 		{
 			this->_method = line[0];
@@ -183,7 +173,7 @@ RequestHeader::RequestHeader(int socket)
 	}
 }
 
-// RequestHeader::RequestHeader(int socket)
+// HttpRequest::HttpRequest(int socket)
 // {
 // 	std::vector<std::string>	request;
 // 	std::string					line;
@@ -191,7 +181,7 @@ RequestHeader::RequestHeader(int socket)
 // 	int							readBit;
 //
 // 	int count = 0;
-// 	std::cout << "(RequestHeader) Constructor is called." << std::endl;
+// 	std::cout << "(HttpRequest) Constructor is called." << std::endl;
 // 	while (1)
 // 	{
 // 		readBit = read(socket, buffer, 1);
@@ -305,20 +295,20 @@ RequestHeader::RequestHeader(int socket)
 // 	return (result);
 // }
 
-RequestHeader::RequestHeader(RequestHeader const &rhs)
+HttpRequest::HttpRequest(HttpRequest const &rhs)
 {
-	std::cout << "(RequestHeader) Copy constructor is called." << std::endl;
+	std::cout << "(HttpRequest) Copy constructor is called." << std::endl;
 	*this = rhs;
 }
 
-RequestHeader::~RequestHeader(void)
+HttpRequest::~HttpRequest(void)
 {
-	std::cout << "(RequestHeader) Destructor is called." << std::endl;
+	std::cout << "(HttpRequest) Destructor is called." << std::endl;
 }
 
-RequestHeader	&RequestHeader::operator=(RequestHeader const &rhs)
+HttpRequest	&HttpRequest::operator=(HttpRequest const &rhs)
 {
-	std::cout << "(RequestHeader) Copy assignment operator is called." << std::endl;
+	std::cout << "(HttpRequest) Copy assignment operator is called." << std::endl;
 	if (&rhs != this)
 	{
 		this->_method = rhs.getMetthod();
@@ -340,118 +330,118 @@ RequestHeader	&RequestHeader::operator=(RequestHeader const &rhs)
 	return (*this);
 }
 
-std::string const	&RequestHeader::getMetthod(void) const
+std::string const	&HttpRequest::getMetthod(void) const
 {
 	return (this->_method);
 }
 
-std::string const	&RequestHeader::getUrl(void) const
+std::string const	&HttpRequest::getUrl(void) const
 {
 	return (this->_url);
 }
 
-std::string const	&RequestHeader::getVersion(void) const
+std::string const	&HttpRequest::getVersion(void) const
 {
 	return (this->_version);
 }
 
-std::string const	&RequestHeader::getHost(void) const
+std::string const	&HttpRequest::getHost(void) const
 {
 	return (this->_host);
 }
 
-std::vector<std::string> const	&RequestHeader::getAccept (void) const
+std::vector<std::string> const	&HttpRequest::getAccept (void) const
 {
 	return (this->_accept);
 }
 
-std::vector<std::string> const	&RequestHeader::getLanguage(void) const
+std::vector<std::string> const	&HttpRequest::getLanguage(void) const
 {
 	return (this->_language);
 }
 
-std::vector<std::string> const	&RequestHeader::getEncode(void) const
+std::vector<std::string> const	&HttpRequest::getEncode(void) const
 {
 	return (this->_encode);
 }
 
-std::string const	&RequestHeader::getConnection(void) const
+std::string const	&HttpRequest::getConnection(void) const
 {
 	return (this->_connection);
 }
 
-std::string const	&RequestHeader::getPort(void) const
+std::string const	&HttpRequest::getPort(void) const
 {
 	return (this->_port);
 }
 
-bool const	RequestHeader::getMobile(void) const
+bool const	HttpRequest::getMobile(void) const
 {
 	return (this->_mobile);
 }
 
-std::string const	&RequestHeader::getPlatForm(void) const
+std::string const	&HttpRequest::getPlatForm(void) const
 {
 	return (this->_platform);
 
 }
-std::string const	&RequestHeader::getFetchSite(void) const
+std::string const	&HttpRequest::getFetchSite(void) const
 {
 	return (this->_fetchSite);
 }
 
-std::string const	&RequestHeader::getFetchMode(void) const
+std::string const	&HttpRequest::getFetchMode(void) const
 {
 	return (this->_fetchMode);
 }
 
-std::string const	&RequestHeader::getFetchDest(void) const
+std::string const	&HttpRequest::getFetchDest(void) const
 {
 	return (this->_fetchDest);
 }
 
-std::string const	&RequestHeader::getReferer(void) const
+std::string const	&HttpRequest::getReferer(void) const
 {
 	return (this->_referer);
 }
 
-std::string const	&RequestHeader::getAgent(void) const
+std::string const	&HttpRequest::getAgent(void) const
 {
 	return (this->_agent);
 }
 
-std::string const	&RequestHeader::getInsecure(void) const
+std::string const	&HttpRequest::getInsecure(void) const
 {
 	return (this->_insecure);
 }
 
-std::string const	&RequestHeader::getAcceptStr(void) const
+std::string const	&HttpRequest::getAcceptStr(void) const
 {
 	return (this->_acceptStr);
 }
 
-std::string const	&RequestHeader::getEncodeStr(void) const
+std::string const	&HttpRequest::getEncodeStr(void) const
 {
 	return (this->_encodeStr);
 }
 
-std::string const	&RequestHeader::getLanguageStr(void) const
+std::string const	&HttpRequest::getLanguageStr(void) const
 {
 	return (this->_languageStr);
 }
 
-std::string const	&RequestHeader::getRangeStr(void) const
+std::string const	&HttpRequest::getRangeStr(void) const
 {
 	return (this->_rangeStr);
 }
 
-std::vector<std::string> const	&RequestHeader::getRange(void) const
+std::vector<std::string> const	&HttpRequest::getRange(void) const
 {
 	return (this->_range);
 }
 
 
-std::ostream	&operator<<(std::ostream &out, RequestHeader const &rhs)
+std::ostream	&operator<<(std::ostream &out, HttpRequest const &rhs)
 {
 	out << "Medthod  : |" << rhs.getMetthod() << "|" << std::endl;
 	out << "URl      : |" << rhs.getUrl() << "|" << std::endl;

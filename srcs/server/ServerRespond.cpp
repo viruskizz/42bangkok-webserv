@@ -1,24 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   serverRespond.cpp                                  :+:      :+:    :+:   */
+/*   ServerRespond.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 20:36:46 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/12 15:51:28 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/14 10:48:25 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ServerRespond.hpp"
 
 static std::string	initContentType(std::string const &url);
-static int			initBodyContent(RequestHeader const &request, Config const &server, char **body);
+static int			initBodyContent(HttpRequest const &request, Config const &server, char **body);
 static std::string	initStatusCode(int code);
 static int			initHeaderLength(ServerRespond const &respond);
-static int			execCommondGetwayInterface(RequestHeader const &request, Config const &server, char **content);
-static int			methodGET(RequestHeader const &request, Config const &server, char **body, int *length);
-static int			initHeader(ServerRespond &respond, RequestHeader const &request);
+static int			execCommondGetwayInterface(HttpRequest const &request, Config const &server, char **content);
+static int			methodGET(HttpRequest const &request, Config const &server, char **body, int *length);
+static int			initHeader(ServerRespond &respond, HttpRequest const &request);
 
 ServerRespond::ServerRespond(void) :
 _request(), _contentType(""), _statusCode(""), _httpVersion("HTTP/1.1 "), _bodyContent(NULL), _contentLength(0), _headerLength(0), _cgi(0), _code(0), _respondHeader("")
@@ -93,7 +93,7 @@ ServerRespond	&ServerRespond::operator=(ServerRespond const &rhs)
 	return (*this);
 }
 
-RequestHeader const	&ServerRespond::getRequest(void) const
+HttpRequest const	&ServerRespond::getRequest(void) const
 {
 	return (this->_request);
 }
@@ -163,7 +163,7 @@ int		ServerRespond::getCode(void) const
 	return (this->_code);
 }
 
-static int	initHeader(ServerRespond &respond, RequestHeader const &request)
+static int	initHeader(ServerRespond &respond, HttpRequest const &request)
 {
 	std::string	respondHeader;
 
@@ -195,9 +195,9 @@ std::ostream	&operator<<(std::ostream &out, ServerRespond const &rhs)
 	return (out);
 }
 
-static int	getFileDiscriptor(RequestHeader const &request, Config const &server);
+static int	getFileDiscriptor(HttpRequest const &request, Config const &server);
 
-static int methodGET(RequestHeader const &request, Config const &server, char **body, int *length)
+static int methodGET(HttpRequest const &request, Config const &server, char **body, int *length)
 {
 	char						*content;
 	std::vector<std::string>	splited;
@@ -231,7 +231,7 @@ static int methodGET(RequestHeader const &request, Config const &server, char **
  	return (200);
 }
 
-// static int	methodPOST(RequestHeader const &request, Config const &server, char **body, int *length)
+// static int	methodPOST(HttpRequest const &request, Config const &server, char **body, int *length)
 // {
 // 	if (request.getContentType() == "application/x-www-form-urlencoded")
 // 	{
@@ -248,7 +248,7 @@ static int methodGET(RequestHeader const &request, Config const &server, char **
 // 	return (405);
 // }
 
-static int initBodyContent(RequestHeader const &request, Config const &server, char **body)
+static int initBodyContent(HttpRequest const &request, Config const &server, char **body)
 {
 	char	*buffer;
 	int		readByte;
@@ -278,23 +278,21 @@ static int initBodyContent(RequestHeader const &request, Config const &server, c
 	return (bodySize);
 }
 
-static int	getFileDiscriptor(RequestHeader const &request, Config const &server)
+static int	getFileDiscriptor(HttpRequest const &request, Config const &server)
 {
-	int		fd;
-	char	*fileName;
-	int		count;
+	int			fd;
+	int			count;
+	std::string	fileName;
 
-	fileName = NULL;
 	count = 0;
 	if (request.getUrl() == "/")
 	{
 		while (count < server.getIndex().size())
 		{
-			fileName = NULL;
-			fileName = strjoin(ROOT, const_cast<char *>(server.getIndex()[count].c_str()), SJ_NONE);
+			fileName.clear();
+			fileName = std::string(ROOT) + "/" + server.getIndex()[count];
 			std::cout << "openFirst-> " << fileName << std::endl;
-			fd = open(fileName, O_RDONLY);
-			delete [] fileName;
+			fd = open(fileName.c_str(), O_RDONLY);
 			if (fd >= 3)
 				break ;
 			count++;
@@ -302,10 +300,10 @@ static int	getFileDiscriptor(RequestHeader const &request, Config const &server)
 	}
 	else
 	{
-		fileName = strjoin(ROOT, const_cast<char *>(request.getUrl().c_str()), SJ_NONE);
+		fileName.clear();
+		fileName = std::string(ROOT) + request.getUrl();
 		std::cout << "openSeccond-> " << fileName << std::endl;
-		fd = open(fileName, O_RDONLY);
-		delete [] fileName;
+		fd = open(fileName.c_str(), O_RDONLY);
 	}
 	return (fd);
 }
@@ -314,12 +312,12 @@ extern char **environ;
 
 static std::string	getExecutorLanguage(t_CGI scriptURI);
 static char			**getExecutorPath(std::string const &exceLanguage, t_CGI const &scriptURI);
-static t_CGI		initScriptURI(std::string const &url, RequestHeader const &request);
-static int			pathExecutor(char **execPath, Config const &server,  t_CGI const &scriptURI, RequestHeader const &request);
+static t_CGI		initScriptURI(std::string const &url, HttpRequest const &request);
+static int			pathExecutor(char **execPath, Config const &server,  t_CGI const &scriptURI, HttpRequest const &request);
 static int			readFile(int fd, char **content);
 static bool			contentHeaderCheck(char *content);
 
-static int	execCommondGetwayInterface(RequestHeader const &request, Config const &server, char **content)
+static int	execCommondGetwayInterface(HttpRequest const &request, Config const &server, char **content)
 {
 	int							fd;
 	char						**executePath;
@@ -398,7 +396,7 @@ static char	**getExecutorPath(std::string const &exceLanguage, t_CGI const &scri
 
 static int	getFileIndex(std::string const &url, std::vector<std::string> &pathSplited);
 
-static t_CGI	initScriptURI(std::string const &url, RequestHeader const &request)
+static t_CGI	initScriptURI(std::string const &url, HttpRequest const &request)
 {
 	t_CGI						scriptURI;
 	std::vector<std::string>	URISplited;
@@ -473,9 +471,9 @@ static int	getFileIndex(std::string const &url, std::vector<std::string> &pathSp
 	return (fileIndex);
 }
 
-static char			**setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, RequestHeader const &request);
+static char			**setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, HttpRequest const &request);
 
-static int	pathExecutor(char **execPath, Config const &server, t_CGI const &scriptURI, RequestHeader const &request)
+static int	pathExecutor(char **execPath, Config const &server, t_CGI const &scriptURI, HttpRequest const &request)
 {
 	int		fd[2];
 	pid_t	pid;
@@ -518,7 +516,7 @@ static int	pathExecutor(char **execPath, Config const &server, t_CGI const &scri
 //? CONTENT_TYPE: Internet media type of input data if PUT or POST method are used, as provided via HTTP header.
 //? CONTENT_LENGTH: similarly, size of input data (decimal, in octets) if provided via HTTP header.
 
-char	**setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, RequestHeader const &request)
+char	**setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, HttpRequest const &request)
 {
 	char		**cgiEnviron;
 	int			index;
@@ -581,7 +579,7 @@ char	**setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, Requ
 }
 
 
-// static int	setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, RequestHeader const &request)
+// static int	setEnvironmentVariable(Config const &server, t_CGI const &scriptURI, HttpRequest const &request)
 // {
 // 	char	**environment;
 //
@@ -803,6 +801,7 @@ static std::string	initStatusCode(int code)
 	return ("");
 }
 
+// *
 static std::string	initContentType(std::string const &url)
 {
 	std::string	contentType;

@@ -1,6 +1,6 @@
 #include "Webserv.hpp"
 #include "./server/ServerRespond.hpp"
-#include "./server/RequestHeader.hpp"
+#include "./server/HttpRequest.hpp"
 // #include <netdb.h>
 
 std::vector<int>				serverSocket;
@@ -8,7 +8,7 @@ std::vector<struct addrinfo *>	address;
 // Config							*configFile;
 
 # define PORT "8080"
-# define BACK_LOG 10
+# define BACK_LOG 100
 
 static void exitWithError(char *errorMessage, int mode)
 {

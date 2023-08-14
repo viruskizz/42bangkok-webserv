@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   serverRespond.hpp                                  :+:      :+:    :+:   */
+/*   ServerRespond.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/04 20:20:16 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/12 13:00:10 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/14 10:48:25 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,12 @@
 # include <vector>
 # include "../Webserv.hpp"
 # include "../conf/Config.hpp"
-# include "RequestHeader.hpp"
+# include "HttpRequest.hpp"
 
 class ServerRespond
 {
 	private:
-		RequestHeader	_request;
+		HttpRequest	_request;
 		std::string		_contentType;
 		std::string		_statusCode;
 		std::string		_httpVersion;
@@ -41,7 +41,7 @@ class ServerRespond
 		ServerRespond		&operator=(ServerRespond const &rhs);
 		std::string			getRespond(void) const;
 		int					getRespondLength(void) const;
-		RequestHeader const	&getRequest(void) const;
+		HttpRequest const	&getRequest(void) const;
 		std::string const	&getContentType(void) const;
 		std::string const	&getStatusCode(void) const;
 		std::string const	&getHttpVersion(void) const;

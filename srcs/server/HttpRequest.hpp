@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   RequestHeader.hpp                                  :+:      :+:    :+:   */
+/*   HttpRequest.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,25 +10,26 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef REQUESTHEADER_HPP
-# define REQUESTHEADER_HPP
+#ifndef HttpRequest_HPP
+# define HttpRequest_HPP
 
 # include <iostream>
 # include <vector>
+# include <map>
 # include <fcntl.h>
 # include <unistd.h>
 # include <cstring>
 # include <exception>
 # include "../Webserv.hpp"
 
-class RequestHeader
+class HttpRequest
 {
 	public:
-		RequestHeader(void);
-		RequestHeader(int socket);
-		RequestHeader(RequestHeader const &rhs);
-		~RequestHeader(void);
-		RequestHeader	&operator=(RequestHeader const &rhs);
+		HttpRequest(void);
+		HttpRequest(int socket);
+		HttpRequest(HttpRequest const &rhs);
+		~HttpRequest(void);
+		HttpRequest	&operator=(HttpRequest const &rhs);
 		std::string const				&getMetthod(void) const;
 		std::string const				&getUrl(void) const;
 		std::string const				&getVersion(void) const;
@@ -61,7 +62,14 @@ class RequestHeader
 		{
 			public:
 				virtual const char * what() const throw () {
-					return ("(RequestHeader) Error: cannot read from socket_intput.");
+					return ("(HttpRequest) Error: cannot read from socket_intput.");
+				}
+		};
+		class CannotAllocateException : public std::exception
+		{
+			public:
+				virtual const char * what() const throw () {
+					return ("(HttpRequest) Error: cannot allocate the memory.");
 				}
 		};
 
@@ -90,8 +98,14 @@ class RequestHeader
 		std::string					_rangeStr;
 		std::string					_contentLength;
 		std::string					_content;
+
+		std::string					_raw;
+		std::map<std::string, std::string>	_request;
+		// * static fucntion;
+		void	readSocket(int socket);
+		void	requestPaser(void);
 };
 
-std::ostream	&operator<<(std::ostream &out, RequestHeader const &rhs);
+std::ostream	&operator<<(std::ostream &out, HttpRequest const &rhs);
 
 #endif
