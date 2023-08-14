@@ -14,6 +14,7 @@ SRCS 		=	srcs/main.cpp \
 				srcs/conf/ServerConf.cpp \
 				srcs/utils/StringUtil.cpp \
 				srcs/utils/WebservUtil.cpp \
+				srcs/server/Server.cpp \
 				srcs/server/RequestHeader.cpp \
 				srcs/server/ServerRespond.cpp
 
