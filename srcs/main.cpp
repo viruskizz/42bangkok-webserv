@@ -3,6 +3,20 @@
 #include "./server/RequestHeader.hpp"
 #include "./server/Server.hpp"
 
+// for dev config
+int	main(int argc, char **argv)
+{
+	Config	*configFile;
+
+	if (argc == 1)
+		configFile = new Config();
+	else if (argc == 2)
+		configFile = new Config(argv[1]);
+	Config::debug(*configFile);
+	return (EXIT_SUCCESS);
+}
+
+/*
 Server *server;
 
 static void	signalHandle(int signalNumber)
@@ -35,4 +49,4 @@ int	main(int argc, char **argv)
 	server->init();
 	server->start();
 	return (EXIT_SUCCESS);
-}
+}*/

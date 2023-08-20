@@ -1,37 +1,38 @@
 #pragma once
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <vector>
-#include "ServerConf.hpp"
-#include "../utils/StringUtil.hpp"
+# include "../Webserv.hpp"
+# include "ServerConf.hpp"
+
+class ServerConf;
 
 class Config
 {
 private:
 
 	void	readfile(void);
+	void	setFiledata(void);
 	void	setConfig(std::string, std::ifstream &);
-	void	setServerConf(std::string, std::ifstream &);
 
 	std::string 				m_filename;
 	std::string					m_filedata;
-	std::vector<std::string>	m_index;
-	// char						*m_index;
+	std::string					m_index;
 	std::vector<ServerConf *>	m_servers;
+
+protected:
+	void lineByLine(std::ifstream & ifile, void (*func)(string const &, string const &));
 
 public:
 	Config(void);
 	Config(std::string const &);
 	~Config(void);
 
-	std::string getFiledata(void) const;
-	std::string getFilename(void) const;
+	static void debug(Config &);
+
+	std::string const & getFiledata(void) const;
+	std::string const & getFilename(void) const;
 
 	// * sharnvon added
-	std::vector<ServerConf*> const	&getServer(void) const;
-	std::vector<std::string> const	&getIndex(void) const;
+	std::vector<ServerConf*> const	&getServers(void) const;
+	std::string const	&getIndex(void) const;
 
 	class FileNotFoundException: public std::exception {
 		public:

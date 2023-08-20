@@ -5,11 +5,13 @@
  ************************************************/
 
 Config::Config() : m_filename("./files/default.conf"), m_filedata("") {
-	this->readfile();
+	// this->readfile();
+	setFiledata();
 }
 
 Config::Config(std::string const & filename) : m_filename(filename), m_filedata("") {
-	this->readfile();
+	// this->readfile();
+	setFiledata();
 }
 
 Config::~Config() {
@@ -23,30 +25,31 @@ Config::~Config() {
 	std::cout << "size: " << this->m_servers.size() << std::endl;
 }
 
-std::string Config::getFilename() const
+std::string const & Config::getFilename() const
 {
 	return this->m_filename;
 }
 
-std::string Config::getFiledata() const
+std::string const & Config::getFiledata() const
 {
 	return this->m_filedata;
 }
 
-std::vector<ServerConf *> const	&Config::getServer(void) const
-{
-	return (this->m_servers);
-}
 
-std::vector<std::string> const	&Config::getIndex(void) const
+
+std::string const	&Config::getIndex(void) const
 {
 	return (this->m_index);
+}
+
+std::vector<ServerConf *> const	&Config::getServers(void) const
+{
+	return (this->m_servers);
 }
 
 /************************************************
  *           Specific member function           *
  ************************************************/
-static char	*stringDupTosCharPtr(std::string const &string);
 
 void Config::readfile()
 {
@@ -72,89 +75,63 @@ void Config::readfile()
 	}
 }
 
-void Config::setConfig(std::string line, std::ifstream & file) {
-	std::vector<std::string> value = StringUtil::split(line, " \t");
-	if (value.size() == 0) {
-		return;
-	}
-	std::string key = value[0];
-	value.erase(value.begin());
-	if (value.size() == 0) {
-		throw Config::InvalidConfigException();
-	}
-	if (key == "index") {
-		// m_index = value.at(0);
-		for (std::vector<std::string>::iterator it = value.begin(); it != value.end(); ++it)
-			m_index.push_back(*it);
-			// m_index.push_back(value.at(0));
-	}
-	if (key == "server") {
-		if (value.at(0) != "{") {
-			throw Config::InvalidConfigException();
+
+void Config::setFiledata() {
+	std::string line;
+	std::ifstream file(m_filename.c_str());
+	if (file.is_open())
+	{
+		while (getline(file, line)) {
+			m_filedata += line + '\n';
 		}
-		setServerConf(line, file);
+		file.close();
+	}
+	else
+	{
+		throw Config::FileNotFoundException();
 	}
 }
 
-void Config::setServerConf(std::string line, std::ifstream & file) {
-	ServerConf *conf = new ServerConf();
-	while (getline(file, line)) {
-		m_filedata += line + '\n';
+void Config::setConfig(std::string line, std::ifstream & file) {
+	std::vector<std::string> value = StringUtil::split(line, " \t");
+	if (value.size() == 0) { return; }
+	if (value.size() < 2) { throw Config::InvalidConfigException(); }
+	std::string key = value[0];
+	std::string val = value[1];
+	if (key == "index") {
+		m_index = val;
+	}
+	if (key == "server") {
+		if (val != "{") {
+			throw Config::InvalidConfigException();
+		}
+		ServerConf *serverConf = new ServerConf();
+	}
+}
+
+
+void Config::lineByLine(std::ifstream & ifile, void (*func)(string const &, string const &)) {
+	string line;
+	while (getline(ifile, line)) {
 		if (!line.empty() && line.at(0) == '#') {
 			continue;
 		}
-		if (!line.empty() && line == "}") {
-			this->m_servers.push_back(conf);
-			return;
-		}
-		std::vector<std::string> value = StringUtil::split(line, " \t");
-		if (value.size() == 0) {
-			this->m_servers.push_back(conf);
-			return;
-		}
-		std::string key = value[0];
-		value.erase(value.begin());
-		if (value.size() == 0) {
-			throw Config::InvalidConfigException();
-		}
-		if (key == "server_name") {
-			conf->serverName = value[0];
-			// conf->serverName = stringDupTosCharPtr(value[0]);
-			// conf.serverName = const_cast<char *>(value[0].c_str());
-		}
-		if (key == "listen") {
-			conf->listen = value[0];
-			// conf->listen = stringDupTosCharPtr(value[0]);
-			// conf.listen = const_cast<char *>(value[0].c_str());
-			// std::stringstream ss;
-			// ss << value[0];
-			// ss >> conf.listen;
-		}
-		if (key == "root") {
-			conf->root = value[0];
-			// conf->root = stringDupTosCharPtr(value[0]);
-			// conf.root = const_cast<char *>(value[0].c_str());
-		}
+		vector<string> value = StringUtil::split(line, " \t");
+		if (value.size() == 0) { continue;; }
+		if (value.size() < 2) { throw "Invalid Key Value string"; }
+		string key = value[0];
+		string val = value[1];
+		func(key, val);
 	}
-	throw Config::InvalidConfigException();
+}
+
+
+void Config::debug(Config &config) {
+	std::cout << C_RED << "Debug: " << config.m_filename << C_RESET << std::endl;
+	std::cout << config.m_filedata << std::endl;
+
 }
 
 std::ostream & operator << (std::ostream & o, Config const & rhs) {
 	return o << rhs.getFiledata();
 }
-
-// static char	*stringDupTosCharPtr(std::string const &string)
-// {
-// 	char	*result;
-// 	int		index;
-
-// 	index = 0;
-// 	result = new char[string.size() + 1];
-// 	while (index < string.size())
-// 	{
-// 		result[index] = string[index];
-// 		index++;
-// 	}
-// 	result[index] = '\0';
-// 	return (result);
-// }

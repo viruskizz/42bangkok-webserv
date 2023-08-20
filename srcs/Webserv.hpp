@@ -1,24 +1,34 @@
 #pragma once
 
-# include "../srcs/conf/Config.hpp"
-# include "../srcs/utils/StringUtil.hpp"
-# include <sys/socket.h>
-# include <sys/signal.h>
-# include <netinet/in.h>
+# include <cstring>
+# include <iostream>
+# include <fstream>
+# include <cstdio>
+# include <cstdlib>
+# include <csignal>
+# include <string>
+# include <vector>
+# include <map>
+# include <netdb.h>
+# include <fcntl.h>
 # include <arpa/inet.h>
 # include <dirent.h>
 # include <unistd.h>
-# include <cstring>
-# include <iostream>
-# include <netdb.h>
-# include <fcntl.h>
-# include <cstdio>
-# include "./server/RequestHeader.hpp"
-# include <cstdlib>
-# include <csignal>
 # include <sys/types.h>
 # include <sys/wait.h>
-# include <vector>
+# include <sys/socket.h>
+# include <sys/signal.h>
+# include <netinet/in.h>
+# include "./utils/StringUtil.hpp"
+# include "./utils/FileUtil.hpp"
+// # include "./conf/Config.hpp"
+// # include "./conf/ServerConf.hpp"
+// # include "./server/RequestHeader.hpp"
+
+
+# define C_RED "\033[0;31m"
+# define C_YELLOW "\033[0;33m"
+# define C_RESET "\033[0m"
 
 // #include <iostream>
 # define BREAK_LINE (char *)"\r\n"
@@ -42,6 +52,13 @@
 # define SA_FSTS 1
 # define SA_FSTR 2
 # define SA_BOTH 3
+
+// Using scope of namespace
+// using std::cout;
+// using std::endl;
+// using std::string;
+// using std::vector;
+
 
 struct t_CGI
 {
