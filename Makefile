@@ -23,7 +23,6 @@ SRCS 		=	srcs/main.cpp \
 				srcs/conf/Config.cpp \
 				srcs/conf/ServerConf.cpp \
 				srcs/utils/StringUtil.cpp \
-				srcs/utils/FileUtil.cpp \
 				srcs/utils/WebservUtil.cpp
 
 OBJS 		= $(SRCS:%.cpp=$(BUILD_DIR)/%.o)

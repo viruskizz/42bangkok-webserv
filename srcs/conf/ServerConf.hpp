@@ -12,28 +12,30 @@ enum LocationConf {
 	fastcgi,
 };
 
+class Config;
+
 class ServerConf
 {
 private:
-	/* data */
 	string	m_listen;
 	string	m_serverName;
 	string	m_root;
+	string	m_index;
 	vector< map<LocationConf, string> > m_locations;
 
 	void mapKeyVal(string const &, string const &);
 	void setConfig(string const &, string const &);
 	void setLocation(string const &, string const &);
+	void lineByLine(std::ifstream &, void (ServerConf::*)(string const &, string const &));
 
 public:
-	ServerConf(void);
-	ServerConf(std::ifstream &);
+	ServerConf(Config *,  std::ifstream &);
 	~ServerConf(void);
 
 	string const & getServerName(void) const;
 	string const & getListen(void) const;
 	string const & getRoot(void) const;
-
+	string const & getIndex(void) const;
 
 	// string setConfig(std::ifstream &);
 	class InvalidConfigException: public std::exception {
