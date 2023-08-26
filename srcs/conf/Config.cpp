@@ -5,156 +5,131 @@
  ************************************************/
 
 Config::Config() : m_filename("./files/default.conf"), m_filedata("") {
-	this->readfile();
+	setFiledata();
+	m_ifile.open(m_filename.c_str());
+	lineByLine(m_ifile, &Config::setConfig);
 }
 
 Config::Config(std::string const & filename) : m_filename(filename), m_filedata("") {
-	this->readfile();
+	setFiledata();
+	m_ifile.open(m_filename.c_str());
+	lineByLine(m_ifile, &Config::setConfig);
 }
 
 Config::~Config() {
 	std::cout << "[Config] destructor is called" << std::endl;
-	for (std::vector<ServerConf*>::iterator it = this->m_servers.begin();
-		it != this->m_servers.end();)
-	{
+	for (std::vector<ServerConf*>::iterator it = m_servers.begin();
+		it != m_servers.end();) {
 		delete *it;
-		this->m_servers.erase(it);
+		m_servers.erase(it);
 	}
-	std::cout << "size: " << this->m_servers.size() << std::endl;
+	std::cout << "size: " << m_servers.size() << std::endl;
 }
 
-std::string Config::getFilename() const
-{
-	return this->m_filename;
+string const & Config::getFilename() const {
+	return m_filename;
 }
 
-std::string Config::getFiledata() const
-{
-	return this->m_filedata;
+string const & Config::getFiledata() const {
+	return m_filedata;
 }
 
-std::vector<ServerConf *> const	&Config::getServer(void) const
-{
-	return (this->m_servers);
+string const &Config::getListen(void) const {
+	return m_listen;
 }
 
-std::vector<std::string> const	&Config::getIndex(void) const
-{
-	return (this->m_index);
+string const & Config::getRoot() const {
+	return m_root;
+}
+
+string const &Config::getIndex(void) const {
+	return m_index;
+}
+
+vector<ServerConf *> const & Config::getServers(void) const {
+	return m_servers;
 }
 
 /************************************************
  *           Specific member function           *
  ************************************************/
-static char	*stringDupTosCharPtr(std::string const &string);
 
-void Config::readfile()
-{
+void Config::setFiledata() {
 	std::string line;
 	std::ifstream file(m_filename.c_str());
-
-	if (file.is_open())
-	{
+	if (file.is_open()) {
 		while (getline(file, line)) {
 			m_filedata += line + '\n';
-			if (!line.empty() && line.at(0) == '#') {
-				continue;
-			}
-			if (!line.empty()) {
-				this->setConfig(line, file);
-			}
 		}
 		file.close();
 	}
-	else
-	{
+	else {
 		throw Config::FileNotFoundException();
 	}
 }
 
-void Config::setConfig(std::string line, std::ifstream & file) {
-	std::vector<std::string> value = StringUtil::split(line, " \t");
-	if (value.size() == 0) {
-		return;
-	}
-	std::string key = value[0];
-	value.erase(value.begin());
-	if (value.size() == 0) {
-		throw Config::InvalidConfigException();
-	}
+void Config::setConfig(std::string & key, std::string & val) {
 	if (key == "index") {
-		// m_index = value.at(0);
-		for (std::vector<std::string>::iterator it = value.begin(); it != value.end(); ++it)
-			m_index.push_back(*it);
-			// m_index.push_back(value.at(0));
+		m_index = val;
 	}
 	if (key == "server") {
-		if (value.at(0) != "{") {
+		if (val != "{") {
 			throw Config::InvalidConfigException();
 		}
-		setServerConf(line, file);
+		ServerConf *serverConf = new ServerConf(this, m_ifile);
+		m_servers.push_back(serverConf);
 	}
 }
 
-void Config::setServerConf(std::string line, std::ifstream & file) {
-	ServerConf *conf = new ServerConf();
-	while (getline(file, line)) {
-		m_filedata += line + '\n';
-		if (!line.empty() && line.at(0) == '#') {
-			continue;
-		}
-		if (!line.empty() && line == "}") {
-			this->m_servers.push_back(conf);
-			return;
-		}
-		std::vector<std::string> value = StringUtil::split(line, " \t");
-		if (value.size() == 0) {
-			this->m_servers.push_back(conf);
-			return;
-		}
-		std::string key = value[0];
-		value.erase(value.begin());
-		if (value.size() == 0) {
+void Config::lineByLine(std::ifstream & ifile, void (Config::*func)(string & key, string & val)) {
+	string line;
+	while (getline(ifile, line)) {
+		if (!line.empty() && line.at(0) == '#') { continue; }
+		vector<string> value = StringUtil::split(line, " \t");
+		if (value.size() == 0) { continue; }
+		if (value.size() < 2) {
+			std::cout << "Error Line: " << line << std::endl;
 			throw Config::InvalidConfigException();
 		}
-		if (key == "server_name") {
-			conf->serverName = value[0];
-			// conf->serverName = stringDupTosCharPtr(value[0]);
-			// conf.serverName = const_cast<char *>(value[0].c_str());
-		}
-		if (key == "listen") {
-			conf->listen = value[0];
-			// conf->listen = stringDupTosCharPtr(value[0]);
-			// conf.listen = const_cast<char *>(value[0].c_str());
-			// std::stringstream ss;
-			// ss << value[0];
-			// ss >> conf.listen;
-		}
-		if (key == "root") {
-			conf->root = value[0];
-			// conf->root = stringDupTosCharPtr(value[0]);
-			// conf.root = const_cast<char *>(value[0].c_str());
-		}
+		string key = value[0];
+		string val = value[1];
+		(this->*func)(key, val);
 	}
-	throw Config::InvalidConfigException();
+}
+
+void Config::debug(Config &config) {
+	std::cout << C_RED << "Debug: " << config.m_filename << C_RESET << std::endl;
+	std::cout << "filename: " << config.m_filename << std::endl;
+	std::cout << "index: " << config.m_index << std::endl;
+	std::cout << "servers: " << config.m_servers.size() << std::endl;
+	if (config.m_servers.size() == 0) { return; }
+	std::cout << "[" << std::endl;
+	for(int i = 0; i < config.m_servers.size(); i++) {
+		ServerConf *serv = config.m_servers[i];
+		std::cout << SUtil::space(2) << "{" << std::endl;
+		std::cout << SUtil::space(4) << "serverName: " << serv->getServerName() << std::endl;
+		std::cout << SUtil::space(4) << "listen: " << serv->getListen() << std::endl;
+		std::cout << SUtil::space(4) << "root: " << serv->getRoot() << std::endl;
+		std::cout << SUtil::space(4) << "index: " << serv->getIndex() << std::endl;
+		vector<StringMap> locations = serv->getLocations();
+		if (locations.size() > 0) {
+			std::cout << SUtil::space(4) << "locations: [" << std::endl;
+			for (vector<StringMap>::iterator itLocate = locations.begin(); itLocate < locations.end(); itLocate++) {
+				StringMap mapLocate = *itLocate;
+				std::cout << SUtil::space(6) << "{" << std::endl;
+				for(map<string, string>::const_iterator it = mapLocate.begin(); it != mapLocate.end(); ++it) {
+					std::cout << SUtil::space(8);
+					std::cout << it->first << ": " << it->second << std::endl;
+				}
+				std::cout << SUtil::space(6) << ((itLocate + 1 < locations.end()) ? "}," : "}") << std::endl;
+			}
+			std::cout << SUtil::space(4) << "]" << std::endl;
+		}
+		std::cout << SUtil::space(2) << ((i < config.m_servers.size() - 1) ? "}," : "}") << std::endl;
+	}
+	std::cout << "]" << std::endl;
 }
 
 std::ostream & operator << (std::ostream & o, Config const & rhs) {
 	return o << rhs.getFiledata();
 }
-
-// static char	*stringDupTosCharPtr(std::string const &string)
-// {
-// 	char	*result;
-// 	int		index;
-
-// 	index = 0;
-// 	result = new char[string.size() + 1];
-// 	while (index < string.size())
-// 	{
-// 		result[index] = string[index];
-// 		index++;
-// 	}
-// 	result[index] = '\0';
-// 	return (result);
-// }

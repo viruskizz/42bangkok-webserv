@@ -33,7 +33,8 @@ void Server::init()
 	m_hint.ai_socktype = SOCK_STREAM;
 	m_hint.ai_flags = AI_PASSIVE;
 
-	errorNumber = getaddrinfo("127.0.0.1", configFile->getServer()[0]->listen.c_str(), &m_hint, &m_addrList); // * << change position 0 to i for dynamic;
+	errorNumber = getaddrinfo(0, "8080", &m_hint, &m_addrList); // * << change position 0 to i for dynamic;
+	// errorNumber = getaddrinfo("127.0.0.1", configFile->getServers()[0]->getListen().c_str(), &m_hint, &m_addrList); // * << change position 0 to i for dynamic;
 	if (errorNumber != 0)
 		Server::exitWithError(const_cast<char *>(gai_strerror(errorNumber)), EE_PERR); // TODO checkerror output;
 	for (struct addrinfo *ptr = m_addrList;; ptr = ptr->ai_next)
