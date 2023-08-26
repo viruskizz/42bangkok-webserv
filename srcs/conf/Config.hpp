@@ -2,9 +2,11 @@
 # include "../Webserv.hpp"
 # include "ServerConf.hpp"
 
-using std::string;
-using std::vector;
-using std::map;
+// using std::string;
+// using std::vector;
+// using std::map;
+
+typedef StringUtil SUtil;
 
 class ServerConf;
 

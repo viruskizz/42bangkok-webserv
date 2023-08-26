@@ -75,6 +75,14 @@ std::string StringUtil::trim(std::string const & s) {
     return std::string(it, rit.base());
 }
 
+std::string StringUtil::space(size_t size) {
+	std::string sp = "";
+	for (int i = 0; i < size; i++) {
+		sp += " ";
+	}
+	return sp;
+}
+
 static int	findStrChar(std::string const & str, char find) {
 	int i;
 

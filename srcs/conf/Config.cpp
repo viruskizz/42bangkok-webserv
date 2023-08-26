@@ -87,7 +87,6 @@ void Config::lineByLine(std::ifstream & ifile, void (Config::*func)(string & key
 		if (!line.empty() && line.at(0) == '#') { continue; }
 		vector<string> value = StringUtil::split(line, " \t");
 		if (value.size() == 0) { continue; }
-		std::cout << "Line: " << line << std::endl;
 		if (value.size() < 2) {
 			std::cout << "Error Line: " << line << std::endl;
 			throw Config::InvalidConfigException();
@@ -103,17 +102,32 @@ void Config::debug(Config &config) {
 	std::cout << "filename: " << config.m_filename << std::endl;
 	std::cout << "index: " << config.m_index << std::endl;
 	std::cout << "servers: " << config.m_servers.size() << std::endl;
+	if (config.m_servers.size() == 0) { return; }
+	std::cout << "[" << std::endl;
 	for(int i = 0; i < config.m_servers.size(); i++) {
 		ServerConf *serv = config.m_servers[i];
-		std::cout << "[" << std::endl;
-		std::cout << "  {" << std::endl;
-		std::cout << "     serverName: " << serv->getServerName() << std::endl;
-		std::cout << "     listen: " << serv->getListen() << std::endl;
-		std::cout << "     root: " << serv->getRoot() << std::endl;
-		std::cout << "     index: " << serv->getIndex() << std::endl;
-		std::cout << "  }" << std::endl;
-		std::cout << "]" << std::endl;
+		std::cout << SUtil::space(2) << "{" << std::endl;
+		std::cout << SUtil::space(4) << "serverName: " << serv->getServerName() << std::endl;
+		std::cout << SUtil::space(4) << "listen: " << serv->getListen() << std::endl;
+		std::cout << SUtil::space(4) << "root: " << serv->getRoot() << std::endl;
+		std::cout << SUtil::space(4) << "index: " << serv->getIndex() << std::endl;
+		vector<StringMap> locations = serv->getLocations();
+		if (locations.size() > 0) {
+			std::cout << SUtil::space(4) << "locations: [" << std::endl;
+			for (vector<StringMap>::iterator itLocate = locations.begin(); itLocate < locations.end(); itLocate++) {
+				StringMap mapLocate = *itLocate;
+				std::cout << SUtil::space(6) << "{" << std::endl;
+				for(map<string, string>::const_iterator it = mapLocate.begin(); it != mapLocate.end(); ++it) {
+					std::cout << SUtil::space(8);
+					std::cout << it->first << ": " << it->second << std::endl;
+				}
+				std::cout << SUtil::space(6) << ((itLocate + 1 < locations.end()) ? "}," : "}") << std::endl;
+			}
+			std::cout << SUtil::space(4) << "]" << std::endl;
+		}
+		std::cout << SUtil::space(2) << ((i < config.m_servers.size() - 1) ? "}," : "}") << std::endl;
 	}
+	std::cout << "]" << std::endl;
 }
 
 std::ostream & operator << (std::ostream & o, Config const & rhs) {

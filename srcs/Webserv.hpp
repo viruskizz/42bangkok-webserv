@@ -24,6 +24,10 @@
 // # include "./conf/ServerConf.hpp"
 // # include "./server/RequestHeader.hpp"
 
+using std::string;
+using std::vector;
+using std::map;
+typedef map<string, string> StringMap;
 
 # define C_RED "\033[0;31m"
 # define C_YELLOW "\033[0;33m"
