@@ -51,6 +51,7 @@ class ServerRespond
 		void				setRespondHeader(std::string const &respondHeader);
 		int					getCode(void) const;
 		void				sendRepond(int socket) const;
+		void				sendRepond(int socket, RequestHeader head, std::string body);
 };
 
 std::ostream	&operator<<(std::ostream &out, ServerRespond const &rhs);

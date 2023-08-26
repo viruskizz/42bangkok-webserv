@@ -1,37 +1,45 @@
 #pragma once
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <vector>
-#include "ServerConf.hpp"
-#include "../utils/StringUtil.hpp"
+# include "../Webserv.hpp"
+# include "ServerConf.hpp"
+
+using std::string;
+using std::vector;
+using std::map;
+
+class ServerConf;
 
 class Config
 {
 private:
 
-	void	readfile(void);
-	void	setConfig(std::string, std::ifstream &);
-	void	setServerConf(std::string, std::ifstream &);
+	void	setFiledata(void);
+	void	setConfig(string &, string &);
 
-	std::string 				m_filename;
-	std::string					m_filedata;
-	std::vector<std::string>	m_index;
-	// char						*m_index;
-	std::vector<ServerConf *>	m_servers;
+	string m_filename;
+	string m_filedata;
+	std::ifstream m_ifile;
+
+	string m_index;
+	string m_listen;
+	string m_root;
+	vector<ServerConf *> m_servers;
+
+protected:
+	void lineByLine(std::ifstream & ifile, void (Config::*func)(string &, string &));
 
 public:
 	Config(void);
-	Config(std::string const &);
+	Config(string const &);
 	~Config(void);
 
-	std::string getFiledata(void) const;
-	std::string getFilename(void) const;
+	static void debug(Config &);
 
-	// * sharnvon added
-	std::vector<ServerConf*> const	&getServer(void) const;
-	std::vector<std::string> const	&getIndex(void) const;
+	string const & getFiledata(void) const;
+	string const & getFilename(void) const;
+	string const & getListen(void) const;
+	string const & getRoot(void) const;
+	string const & getIndex(void) const;
+	vector<ServerConf*> const &getServers(void) const;
 
 	class FileNotFoundException: public std::exception {
 		public:
