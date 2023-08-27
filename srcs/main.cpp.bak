@@ -1,5 +1,5 @@
 #include "Webserv.hpp"
-#include "ServerRespond.hpp"
+#include "HttpRespond.hpp"
 #include "HttpRequest.hpp"
 // #include <netdb.h>
 
@@ -84,9 +84,9 @@ static void	signalHandle(int signalNumber)
 // 	int				fd;
 // 	char			*body = NULL;
 // 	int				bodySize = 0;
-// 	// ServerRespond 	serverRespond(socket, server);
-// 	// write(socket, serverRespond.getRespond().c_str(), serverRespond.getRespondLength());
-// 	// std::cout << serverRespond << std::endl;
+// 	// HttpRespond 	HttpRespond(socket, server);
+// 	// write(socket, HttpRespond.getRespond().c_str(), HttpRespond.getRespondLength());
+// 	// std::cout << HttpRespond << std::endl;
 // 	// close(socket);
 // 	// return (0);
 // 	HttpRequest	clientRequest(socket);
@@ -300,7 +300,7 @@ int	main(int argc, char **argv)
 				{
 					std::cout << "********** Sending Respond to Client **********" << std::endl;
 					fcntl(socket, F_SETFL, O_NONBLOCK);
-					ServerRespond respond(socket, *configFile);
+					HttpRespond respond(socket, *configFile);
 					respond.sendRepond(socket);
 					// write(socket, respond.getRespond().c_str(), respond.getRespondLength());
 					// std::cout << respond << std::endl;

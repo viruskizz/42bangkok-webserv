@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv_util1.cpp                                  :+:      :+:    :+:   */
+/*   WebservUtil.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:28:18 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/10 00:36:50 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/17 22:19:47 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,5 +266,22 @@ char	*stringTosChar(std::string const &string)
 		index++;
 	}
 	result[index] = '\0';
+	return (result);
+}
+
+char	**vectorStringToChar(std::vector<std::string> vector)
+{
+	char	**result;
+	int		index;
+
+	result = new char * [vector.size() + 1];
+	if (!result)
+		return (NULL);
+	while (index < vector.size())
+	{
+		result[index] = stringTosChar(vector[index]);
+		index++;
+	}
+	result[index] = NULL;
 	return (result);
 }

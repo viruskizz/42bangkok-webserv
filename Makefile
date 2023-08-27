@@ -15,9 +15,10 @@ SRCS 		=	srcs/main.cpp \
 				srcs/utils/StringUtil.cpp \
 				srcs/utils/WebservUtil.cpp \
 				srcs/server/HttpRequest.cpp \
-				srcs/server/HttpRequest_util.cpp \
+				srcs/server/RequestBody.cpp \
 				srcs/server/Server.cpp \
-				srcs/server/ServerRespond.cpp
+				srcs/server/HttpRespond.cpp \
+				srcs/server/CommonGatewayInterface.cpp
 
 OBJS 		= $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 

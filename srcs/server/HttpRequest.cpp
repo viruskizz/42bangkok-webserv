@@ -1,299 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   HttpRequest.cpp                                         :+:      :+:    :+:   */
+/*   HttpRequest.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/08 23:20:21 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/06/12 20:23:26 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/25 05:03:04 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
 
-// static std::vector<std::string>	split(std::string const &string, char dilimeter);
-// static std::string				stringTrim(std::string &string, std::string const &delimeters);
-static void						printVector(std::vector<std::string> const &vector);
-
-HttpRequest::HttpRequest(void) :
-_method(""), _url(""), _version(""), _host(""), _port(""), _mobile(-1), _platform(""), _fetchSite(""), _fetchMode(""), _fetchDest(""), _referer(""), _connection(""), _agent(""), _insecure(""), _acceptStr(""), _encodeStr(""), _languageStr(""), _contentLength(""), _content("")
+HttpRequest::HttpRequest(void) : _raw(""), _path("")
 {
 	std::cout << "(HttpRequest) Defualt constructor is called." << std::endl;
 }
  
-// ? GET /favicon.ico HTTP/1.1                                                      | <Medthod> <URL> <Version>;
-// ? Host: localhost:8080                                                           | <Host>:<Port>;
-// ? Connection: keep-alive                                                         | <Conection> | keep-alive, close;
-//* sec-ch-ua: "Not.A/Brand";v="8", "Chromium";v="114", "Microsoft Edge";v="114"    | "<Brand>";v="<Significant-Version>";
-//? sec-ch-ua-mobile: ?0                                                            | ?<Boolen> [0]Destop, [1]Mobile;
-//* User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Geko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.41;
-//* Mozilla/5.0 (<system-information>) <platform> (<platform-details>) <extensions> | <Product> / <Product-Version> <Coment>;
-//? sec-ch-ua-platform: "macOS"                                                     | <Platform>;
-//? Accept: image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8 :)                | <MIME_Typy>/<MIME_Subtype>, <MIME_Type>;*, */*;q=<Quality-Value>;
-//? Sec-Fetch-Site: same-origin                                                     | <Fetch> | cross-site, same-origin, same-site, none;
-//? Sec-Fetch-Mode: no-cors                                                         | <Fetch-Mode> | core, navigate, no-cors, same-origin, websocket;
-//? Sec-Fetch-Dest: image                                                           | <Fetch-Dest>;
-//? Referer: http://localhost:8080/                                                 | <URL>;
-//? Accept-Encoding: gzip, deflate, br                                              | <Fomat>;q=<Qvalues-Weighting(default = 1)>, | gzip, compress, deflate, br, identity, *;
-//? Accept-Language: en-US,en;q=0.9                                                 | <Language>;q=<Q-Factor-Weighting>,...
-// TODO POST<body>Medthod.
-
-// TODO line:52 fix it read propery
-HttpRequest::HttpRequest(int socket)
+HttpRequest::HttpRequest(int socket, Config const &server)
 {
-	std::vector<std::string>	request;
-	std::vector<std::string>	line;
-	std::vector<std::string>	subLine;
-	char						buffer[100000];
-	int							readByte;
-
 	std::cout << "(HttpRequest) Constructor is called." << std::endl;
-	
-	// readByte = read(socket, buffer, READSIZE);
-	// if (readByte < 0)
-	// 	throw (HttpRequest::CannotReadSocketException());
-	// buffer[readByte] = '\0';
-	// std::cout << buffer << std::endl;
 	this->readSocket(socket);
+	std::cout << "paser" << std::endl;
 	this->requestPaser();
-	// * print buffer;
-	// std::cout << "print buffer" << std::endl;
-	// std::cout << buffer << std::endl;
-	{
-		std::string stringBuff(this->_raw);
-		request = split(stringTrim(stringBuff, " \t\n\v\f\r"), '\n');
-	}
-	// * print request;
-	// std::cout << "print request" << std::endl;
-	// for (std::vector<std::string>::iterator it = request.begin();
-	// 	it != request.end(); ++it)
-	// 	// std::cout << "|" << *it << "|" << std::endl;
-	// std::cout << std::endl;
-	for (std::vector<std::string>::iterator iterator = request.begin(); 
-		 iterator != request.end(); ++iterator)
-	{
-		line = split(stringTrim(*iterator, " \t\r\n\v\f"), ' ');
-		if (!line[0].compare("GET") || !line[0].compare("POST") || !line[0].compare("DELETE"))
-		{
-			this->_method = line[0];
-			this->_url = line[1];
-			this->_version = line[2];
-		}
-		else if (!line[0].compare("Host:"))
-		{
-			subLine = split(line[1], ':');
-			if (subLine.size() == 2)
-			{
-				this->_host = subLine[0];
-				this->_port = subLine[1];
-			}
-		}
-		else if (!line[0].compare("Connection:"))
-			this->_connection = line[1];
-		// else if (!line[0].compare("sec-ch-ua:"))
-		else if (!line[0].compare("sec-ch-ua-mobile:"))
-		{
-			if (line[1].find('1') != std::string::npos)
-				this->_mobile = 1;
-			else
-				this->_mobile = 0;
-		}
-		else if (!line[0].compare("User-Agent:"))
-		{
-			for (int i = 1; i < line.size();)
-			{
-				this->_agent += line[i++];
-				if (i < line.size())
-					this->_agent += " ";
-			}
-		}
-		else if (!line[0].compare("sec-ch-ua-platform:"))
-		{
-			for (size_t pos; line[1].find('\"') != std::string::npos;)
-			{
-				pos = line[1].find('\"');
-				line[1].erase(pos, 1);
-			}
-			this->_platform = line[1];
-		}
-		else if (!line[0].compare("Accept:"))
-		{
-			this->_acceptStr = line[1];
-			subLine = split(line[1], ',');
-			for (std::vector<std::string>::iterator it = subLine.begin();
-				it != subLine.end(); ++it)
-				this->_accept.push_back(*it);
-		}
-		else if (!line[0].compare("Sec-Fetch-Site:"))
-			this->_fetchSite = line[1];
-		else if (!line[0].compare("Sec-Fetch-Mode:"))
-			this->_fetchMode = line[1];
-		else if (!line[0].compare("Sec-Fetch-Dest:"))
-			this->_fetchDest = line[1];
-		else if (!line[0].compare("Referer:"))
-			this->_referer = line[1];
-		else if (!line[0].compare("Accept-Encoding:"))
-		{
-			this->_encodeStr.clear();
-			for (std::vector<std::string>::iterator it = line.begin() + 1;
-				it != line.end(); ++it)
-			{
-				this->_encodeStr += *it;
-				for (size_t pos; (*it).find(',') != std::string::npos;)
-				{
-					this->_encodeStr += " ";
-					pos = (*it).find(',');
-					(*it).erase(pos, 1);
-				}
-				this->_encode.push_back(*it);
-			}
-		}
-		else if (!line[0].compare("Accept-Language:"))
-		{
-			this->_languageStr = line[1];
-			subLine = split(line[1], ',');
-			for (std::vector<std::string>::iterator it = subLine.begin();
-				it != subLine.end(); ++it)
-				this->_language.push_back(*it);
-		}
-		else if (!line[0].compare("Upgrade-Insecure-Requests:"))
-			this->_insecure = line[1];
-		else if (!line[0].compare("Range:"))
-		{
-			subLine = split(line[1], '=');
-			this->_rangeStr = subLine[1];
-			subLine = split(subLine[1], ',');
-			for (std::vector<std::string>::iterator it = subLine.begin();
-				it != subLine.end(); ++it)
-				this->_range.push_back(stringTrim(*it, " "));
-		}
-		line.clear();
-		subLine.clear();
-	}
+	std::cout << "initpath" << std::endl;
+	for (int index = 0; index < this->_requestHeader.at("Method").size(); ++index)
+		this->_requestHeader.at("Method").at(index) = toupper(this->_requestHeader.at("Method").at(index));
+	// std::cout << this->_requestHeader.at("Method") << std::endl;
+	// TODO init file path with url + config file; FilePath
+	this->initPath(server);
 }
-
-// HttpRequest::HttpRequest(int socket)
-// {
-// 	std::vector<std::string>	request;
-// 	std::string					line;
-// 	char						buffer[2];
-// 	int							readBit;
-//
-// 	int count = 0;
-// 	std::cout << "(HttpRequest) Constructor is called." << std::endl;
-// 	while (1)
-// 	{
-// 		readBit = read(socket, buffer, 1);
-// 		buffer[readBit] = '\0';
-// 		if (!readBit)
-// 			break ;
-// 		if (buffer[0] == '\n')
-// 		{
-// 			request = split(line, ' ');
-// 			std::cout << "-> " << line << std::endl;
-// 			if (!request[0].compare("GET") || !request[0].compare("POST") || !request[0].compare("DELETE"))
-// 			{
-// 				this->_method = request[0];
-// 				this->_url = request[1];
-// 				this->_version = request[2];
-// 			}
-// 			else if (!request[0].compare("Host:"))
-// 				this->_host = request[1];
-// 			else if (!request[0].compare("Connection:"))
-// 			{
-// 				this->_connection = request[1];
-// 			}
-// 			// else if (request[0].compare("sec-ch-ua:"))
-// 			// else if (request[0].compare("sec-ch-ua-mobile:"))
-// 			// else if (request[0].compare("User-Agent:"))
-// 			// else if (request[0].compare("sec-ch-ua-platform:"))
-// 			// else if (request[0].compare("Accept:"))
-// 			// else if (request[0].compare("Sec-Fetch-Site:"))
-// 			// else if (request[0].compare("Sec-Fetch-Mode:"))
-// 			// else if (request[0].compare("Sec-Fetch-Dest:"))
-// 			// else if (request[0].compare("Referer:"))
-// 			// else if (request[0].compare("Accept-Encoding:"))
-// 			// else if (request[0].compare("Accept-Language:"))
-// 			line.clear();
-// 			std::cout << ++count << std::endl;
-// 			continue ;
-// 		}
-// 		line += buffer;
-// 	}
-// }
-//
-// /*
-// * [utility_function] funciton spliting word from string with delimeter and return by vector\<std::string\>.
-// * • empty-string    -> empty_vector.
-// * • empty-delimeter -> string.
-// * • Successful      -> vector\<std::string\> that was seperated by delimeter.
-// */
-// static std::vector<std::string>	split(std::string const &string, char delimeter)
-// {
-// 	std::vector<std::string>	result;
-// 	std::string					word;
-// 	int							index;
-//
-// 	index = 0;
-// 	if (string == "")
-// 		return (result);
-// 	if (delimeter == '\0')
-// 	{
-// 		result.push_back(string);
-// 		return (result);
-// 	}
-// 	while (index < string.size() && string[index])
-// 	{
-// 		while (string[index] == delimeter)
-// 			index++;
-// 		if (index < string.size() && string[index])
-// 		{
-// 			word.clear();
-// 			while (index < string.size() && string[index] && string[index] != delimeter)
-// 				word += string[index++];
-// 			result.push_back(word);
-// 		}
-// 	}
-// 	return (result);
-// }
-//
-// /*
-// * [utility_function] funciton triming string from string with delimeter and return by std::string.
-// * • empty-string     -> string.
-// * • empty-delimetesr -> string.
-// * • Successful       -> string that was trimed by delimeters.
-// */
-// static std::string	stringTrim(std::string &string, std::string const &delimeters)
-// {
-// 	std::string	result;
-// 	int			start;
-// 	int			end;
-//
-// 	start = 0;
-// 	end = 0;
-// 	result = "";
-// 	if (string == "" || delimeters == "")
-// 		return (string);
-// 	for (int i = 0; i < string.length(); ++i)
-// 	{
-// 		if (delimeters.find(string[i]) == std::string::npos)
-// 		{
-// 			start = i;
-// 			break ;
-// 		}
-// 	}
-// 	for (int i = string.length() - 1 ; i >= 0; --i)
-// 	{
-// 		if (delimeters.find(string[i]) == std::string::npos)
-// 		{
-// 			end = i;
-// 			break ;
-// 		}
-// 	}
-// 	result = string.substr(start, ((end - start) + 1));
-// 	return (result);
-// }
 
 HttpRequest::HttpRequest(HttpRequest const &rhs)
 {
@@ -309,166 +45,229 @@ HttpRequest::~HttpRequest(void)
 HttpRequest	&HttpRequest::operator=(HttpRequest const &rhs)
 {
 	std::cout << "(HttpRequest) Copy assignment operator is called." << std::endl;
-	if (&rhs != this)
+	if (this != &rhs)
 	{
-		this->_method = rhs.getMetthod();
-		this->_url = rhs.getUrl();
-		this->_version = rhs.getVersion();
-		this->_host = rhs.getHost();
-		this->_port = rhs.getPort();
-		this->_mobile = rhs.getMobile();
-		this->_platform = rhs.getPlatForm();
-		this->_fetchSite = rhs.getFetchSite();
-		this->_fetchMode = rhs.getFetchMode();
-		this->_fetchDest = rhs.getFetchDest();
-		this->_referer = rhs.getReferer();
-		this->_accept = rhs.getAccept();
-		this->_encode = rhs.getEncode();
-		this->_language = rhs.getLanguage();
-		this->_connection = rhs.getConnection();
+		this->_raw = rhs._raw;
+		this->_requestHeader = rhs._requestHeader;
+		this->_requestBody = rhs._requestBody;
 	}
 	return (*this);
 }
 
-std::string const	&HttpRequest::getMetthod(void) const
+std::map<std::string, std::string> const	&HttpRequest::getRequestHeader(void) const
 {
-	return (this->_method);
+	return (this->_requestHeader);
 }
 
-std::string const	&HttpRequest::getUrl(void) const
+std::vector<RequestBody> const	&HttpRequest::getRequestBody(void) const
 {
-	return (this->_url);
+	return (this->_requestBody);
 }
 
-std::string const	&HttpRequest::getVersion(void) const
+std::string const	&HttpRequest::getRequestRaw(void) const
 {
-	return (this->_version);
+	return (this->_raw);
 }
 
-std::string const	&HttpRequest::getHost(void) const
+std::string const	&HttpRequest::getPath(void) const
 {
-	return (this->_host);
+	return (this->_path);
 }
 
-std::vector<std::string> const	&HttpRequest::getAccept (void) const
+void	HttpRequest::setPath(std::string &path)
 {
-	return (this->_accept);
+	this->_path = path;
 }
 
-std::vector<std::string> const	&HttpRequest::getLanguage(void) const
+void	HttpRequest::readSocket(int socket)
 {
-	return (this->_language);
+	char	*buffer;
+	char	*content;
+	int		readByte;
+	int		contentLength;
+
+	contentLength = 0;
+	content = NULL;
+	buffer = new char[READSIZE + 1];
+	if (!buffer)
+		throw (HttpRequest::CannotAllocateException());
+	while (true)
+	{
+		readByte = read(socket, buffer, READSIZE);
+		buffer[READSIZE] = '\0';
+		if (readByte <= 0)
+			break ;
+		content = strjoin(content, contentLength, buffer, readByte, SJ_FFIR);
+		contentLength += readByte;
+	}
+	for (int i = 0; i < contentLength; ++i)
+		this->_raw.append(1, content[i]);
+	delete [] buffer;
 }
 
-std::vector<std::string> const	&HttpRequest::getEncode(void) const
+void	HttpRequest::requestPaser(void)
 {
-	return (this->_encode);
+	std::vector<std::string>	requestLine;
+	std::vector<std::string>	lineSplited;
+
+	requestLine = split(stringTrim(this->_raw, " \t\n\v\f\r"), '\n');
+	for (std::vector<std::string>::iterator it = requestLine.begin();
+	it != requestLine.end(); ++it)
+	{
+		lineSplited = split(stringTrim((*it), " \t\n\v\f\r"), ':');
+		if (it == requestLine.begin() && lineSplited.size() == 1)
+		{
+			lineSplited = split(lineSplited[0], ' ');
+			this->_requestHeader.insert(std::pair<std::string, std::string>("Method", lineSplited[0]));
+			this->_requestHeader.insert(std::pair<std::string, std::string>("URL", lineSplited[1]));
+			this->_requestHeader.insert(std::pair<std::string, std::string>("Protocol", lineSplited[2]));
+		}
+		else if (lineSplited[0] == "Content-Type" && lineSplited[1].find(';'))
+		{
+			lineSplited = split(stringTrim(lineSplited[1], " "), ';');
+			this->_requestHeader.insert(std::pair<std::string, std::string>("Content-Type", lineSplited[0]));
+			for (int i = lineSplited[1].find('=') + 1;
+				lineSplited.size() > 1 && i < lineSplited[1].size(); ++i)
+				this->_requestHeader["Boundary"].append(1,lineSplited[1].at(i));
+		}
+		else if (lineSplited[0] == "Origin" || lineSplited[0] == "Host" || lineSplited[0] == "Referer")
+		{
+			lineSplited = lineSplited = split(stringTrim((*it), " \t\n\v\f\r"), ' ');
+			lineSplited[0].pop_back();
+			this->_requestHeader.insert(std::pair<std::string, std::string>(lineSplited[0], lineSplited[1]));
+		}
+		else if (lineSplited[0] == "\r")
+		{
+			it = this->requestBodyPaser(++it, requestLine);
+			break ;
+		}
+		else
+		{
+			this->_requestHeader.insert(
+				std::pair<std::string, std::string>(
+					lineSplited[0], stringTrim(lineSplited[1], " \t\n\v\f\r")));
+		}
+	}
 }
 
-std::string const	&HttpRequest::getConnection(void) const
+// ------WebKitFormBoundaryfsGCxxQTQMWW7Sz0
+// Content-Disposition: form-data; name="file"; filename="test123.sh"
+// Content-Type: text/x-sh
+
+// #!bin/bash
+
+// ehco helo
+
+// ------WebKitFormBoundaryfsGCxxQTQMWW7Sz0--
+
+std::vector<std::string>::iterator	HttpRequest::requestBodyPaser(
+	std::vector<std::string>::iterator it, std::vector<std::string> &requestLine)
 {
-	return (this->_connection);
+	RequestBody	body;
+	std::string	content;
+	std::string fileName;
+	std::string	fileType;
+	std::string bodyContent;
+	bool		isGetBody;
+
+	bodyContent = this->_raw.substr(this->_raw.find("\r\n\r\n") + 4);
+	while (it != requestLine.end())
+	{
+		isGetBody = false;
+		content.clear();
+		fileName.clear();
+		if (this->_requestHeader.find("Boundary") != this->_requestHeader.end()
+			&& it->find(this->_requestHeader["Boundary"]) != std::string::npos)
+			++it;
+		if (*it == "\r")
+			++it;
+		while (this->_requestHeader["Content-Type"] == "multipart/form-data"
+			&& it != requestLine.end()
+			&& it->find(this->_requestHeader["Boundary"]) == std::string::npos)
+		{
+			// std::cout << "-> " << *it << std::endl;
+			if (it->find("Content-Disposition") != std::string::npos)
+				fileName = it->substr(it->rfind('=') + 2, it->rfind('\"') - (it->rfind('=') + 2));
+			else if (it->find("Content-Type") != std::string::npos)
+				fileType = it->substr(it->find(':'), it->size() - it->find(":"));
+			else if (it->find("\r") != std::string::npos && !isGetBody)
+			{
+				bodyContent = bodyContent.substr(bodyContent.find("\r\n\r\n") + 4);
+				for (int index = 0; index < bodyContent.find("--" + this->_requestHeader.at("Boundary")); ++index)
+					content.append(1, bodyContent.at(index));
+				bodyContent = bodyContent.substr(bodyContent.find(this->_requestHeader.at("Boundary")));
+				isGetBody = true;
+			}
+			++it;
+		}
+		while (this->_requestHeader["Content-Type"] != "multipart/form-data"
+			&& it != requestLine.end())
+				content += stringTrim(*it++, "\r") + '\n';
+		if (this->_requestHeader["Content-Type"] == "multipart/form-data")
+		{
+			body.setMethod(UPLOAD);
+			body.setFileName(fileName);
+			body.setFileType(fileType);
+		}
+		else
+			body.setMethod(PASSIN);
+		body.setContent(content);
+		if (!fileName.empty() || !content.empty())
+			this->_requestBody.push_back(body);
+	}
+	return (it);
 }
 
-std::string const	&HttpRequest::getPort(void) const
+void	HttpRequest::initPath(Config const &server)
 {
-	return (this->_port);
+	std::string path;
+	int			count;
+
+	count = 0;
+	if (this->_requestHeader.at("URL") == "/")
+	{
+		while (count < server.getIndex().size())
+		{
+			this->_path.clear();
+			this->_path = std::string(ROOT) + "/" + server.getIndex()[count++];
+			if (!access(this->_path.c_str(), F_OK))
+				break ;
+		}
+	}
+	else
+		this->_path = ROOT + this->_requestHeader.at("URL");
+	// std::cout << "-path-> " << this->_path << std::endl;
 }
 
-bool const	HttpRequest::getMobile(void) const
-{
-	return (this->_mobile);
-}
-
-std::string const	&HttpRequest::getPlatForm(void) const
-{
-	return (this->_platform);
-
-}
-std::string const	&HttpRequest::getFetchSite(void) const
-{
-	return (this->_fetchSite);
-}
-
-std::string const	&HttpRequest::getFetchMode(void) const
-{
-	return (this->_fetchMode);
-}
-
-std::string const	&HttpRequest::getFetchDest(void) const
-{
-	return (this->_fetchDest);
-}
-
-std::string const	&HttpRequest::getReferer(void) const
-{
-	return (this->_referer);
-}
-
-std::string const	&HttpRequest::getAgent(void) const
-{
-	return (this->_agent);
-}
-
-std::string const	&HttpRequest::getInsecure(void) const
-{
-	return (this->_insecure);
-}
-
-std::string const	&HttpRequest::getAcceptStr(void) const
-{
-	return (this->_acceptStr);
-}
-
-std::string const	&HttpRequest::getEncodeStr(void) const
-{
-	return (this->_encodeStr);
-}
-
-std::string const	&HttpRequest::getLanguageStr(void) const
-{
-	return (this->_languageStr);
-}
-
-std::string const	&HttpRequest::getRangeStr(void) const
-{
-	return (this->_rangeStr);
-}
-
-std::vector<std::string> const	&HttpRequest::getRange(void) const
-{
-	return (this->_range);
-}
-
+static void	printMapKeyValue(std::map<std::string, std::string> const &map);
 
 std::ostream	&operator<<(std::ostream &out, HttpRequest const &rhs)
 {
-	out << "Medthod  : |" << rhs.getMetthod() << "|" << std::endl;
-	out << "URl      : |" << rhs.getUrl() << "|" << std::endl;
-	out << "Version  : |" << rhs.getVersion() << "|" << std::endl;
-	out << "Host     : |" << rhs.getHost() << "|" << std::endl;
-	out << "Port     : |" << rhs.getPort() << "|" << std::endl;
-	out << "Accept   : ";
-	printVector(rhs.getAccept());
-	out << "Language : ";
-	printVector(rhs.getLanguage());
-	out << "Conection: |" << rhs.getConnection() << "|" << std::endl;
-	out << "Mobile   : |" << rhs.getMobile() << "|" << std::endl;
-	out << "Platfrom : |" << rhs.getPlatForm() << "|" << std::endl;
-	out << "Encode   : ";
-	printVector(rhs.getEncode());
-	out << "FetchSite: |" << rhs.getFetchSite() << "|" << std::endl;
-	out << "FetchMode: |" << rhs.getFetchMode() << "|" << std::endl;
-	out << "FetchDect: |" << rhs.getFetchDest() << "|" << std::endl;
-	out << "Referer  : |" << rhs.getReferer() << "|" << std::endl;
-
+	out << "==================== (HttpRequestHeader) ====================" << std::endl;
+	printMapKeyValue(rhs.getRequestHeader());
+	out << "=============================================================" << std::endl;
+	out << "======================== (Attribute) ========================" << std::endl;
+	out << "  • _path: " << rhs.getPath() << std::endl;
+	out << "=============================================================" << std::endl;
+	out << "===================== (HttpRequestBody) =====================" << std::endl;
+	if (rhs.getRequestBody().size())
+	{
+		for (std::vector<RequestBody>::const_iterator it = rhs.getRequestBody().begin();
+		it != rhs.getRequestBody().end(); ++it)
+			out << *it;
+	}
+	else
+		out << "            this request's body has no content" << std::endl;
+	out << "=============================================================" << std::endl;
+	out << "====================== (HttpRequestRaw) =====================" << std::endl;
+	out << rhs.getRequestRaw() << std::endl;
+	out << "=============================================================" << std::endl;
 	return (out);
 }
 
-static void	printVector(std::vector<std::string> const &vector)
+static void	printMapKeyValue(std::map<std::string, std::string> const &map)
 {
-	for (std::vector<std::string>::const_iterator it = vector.begin();
-		it != vector.end(); ++it)
-		std::cout <<  "|"  << *it << "| ";
-	std::cout << std::endl;
+	for (std::map<std::string, std::string>::const_iterator it = map.begin();
+		it != map.end(); ++it)
+		std::cout << "|" <<  it->first << "|: " << it->second << "|" << std::endl;
 }

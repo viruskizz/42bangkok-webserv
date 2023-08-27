@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   HttpRequest.hpp                                  :+:      :+:    :+:   */
+/*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 18:57:45 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/12 13:04:37 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/25 05:03:03 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,42 +21,22 @@
 # include <cstring>
 # include <exception>
 # include "../Webserv.hpp"
+# include "RequestBody.hpp"
 
+class RequestBody;
 class HttpRequest
 {
 	public:
 		HttpRequest(void);
-		HttpRequest(int socket);
+		HttpRequest(int socket, Config const &server);
 		HttpRequest(HttpRequest const &rhs);
 		~HttpRequest(void);
 		HttpRequest	&operator=(HttpRequest const &rhs);
-		std::string const				&getMetthod(void) const;
-		std::string const				&getUrl(void) const;
-		std::string const				&getVersion(void) const;
-		std::string const				&getHost(void) const;
-		std::vector<std::string> const	&getAccept (void) const;
-		std::vector<std::string> const	&getLanguage(void) const;
-		std::string const				&getConnection(void) const;
-		std::string const				&getPort(void) const;
-		bool const						getMobile(void) const;
-		std::string const				&getPlatForm(void) const;
-		std::string const				&getFetchSite(void) const;
-		std::string const				&getFetchMode(void) const;
-		std::string const				&getFetchDest(void) const;
-		std::string const				&getReferer(void) const;
-		std::vector<std::string> const	&getEncode(void) const;
-		std::string const				&getAgent(void) const;
-		std::string const				&getInsecure(void) const;
-		std::string const				&getAcceptStr(void) const;
-		std::string const				&getEncodeStr(void) const;
-		std::string const				&getLanguageStr(void) const;
-		// std::vector<std::string>	_range;
-		// std::string					_rangeStr;
-		// std::string					_contentLength;
-		// std::string					_content;
-		std::string const				&getRangeStr(void) const;
-		std::vector<std::string> const	&getRange(void) const;
-
+		std::map<std::string, std::string> const	&getRequestHeader(void) const;
+		std::vector<RequestBody> const				&getRequestBody(void) const;
+		std::string	const							&getRequestRaw(void) const;
+		std::string	const							&getPath(void) const;
+		void										setPath(std::string &path);
 
 		class CannotReadSocketException : public std::exception
 		{
@@ -74,36 +54,17 @@ class HttpRequest
 		};
 
 	private:
-		std::string					_method;
-		std::string					_url;
-		std::string 				_version;
-		std::string					_host;
-		std::string					_port;
-		bool						_mobile;
-		std::string					_platform;
-		std::string					_fetchSite;
-		std::string					_fetchMode;
-		std::string					_fetchDest;
-		std::string					_referer;
-		std::vector<std::string>	_accept;
-		std::vector<std::string>	_encode;
-		std::vector<std::string>	_language;
-		std::string					_connection;
-		std::string					_agent;
-		std::string					_insecure;
-		std::string					_acceptStr;
-		std::string					_encodeStr;
-		std::string					_languageStr;
-		std::vector<std::string>	_range;
-		std::string					_rangeStr;
-		std::string					_contentLength;
-		std::string					_content;
+		std::string							_path;
+		std::string							_raw;
+		std::map<std::string, std::string>	_requestHeader;
+		std::vector<RequestBody>			_requestBody;
+		// std::map<std::string, std::string>	_requestBody;
 
-		std::string					_raw;
-		std::map<std::string, std::string>	_request;
-		// * static fucntion;
-		void	readSocket(int socket);
-		void	requestPaser(void);
+		void								readSocket(int socket);
+		void								requestPaser(void);
+		void								initPath(Config const &server);
+		std::vector<std::string>::iterator	requestBodyPaser(
+			std::vector<std::string>::iterator it, std::vector<std::string> &requestLine);
 };
 
 std::ostream	&operator<<(std::ostream &out, HttpRequest const &rhs);

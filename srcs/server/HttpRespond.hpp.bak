@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ServerRespond.hpp                                  :+:      :+:    :+:   */
+/*   HttpRespond.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SERVERRESPOND_HPP
-# define SERVERRESPOND_HPP
+#ifndef HTTPRESPOND_HPP
+# define HTTPRESPOND_HPP
 
 # include <iostream>
 # include <vector>
@@ -19,26 +19,27 @@
 # include "../conf/Config.hpp"
 # include "HttpRequest.hpp"
 
-class ServerRespond
+class HttpRespond
 {
 	private:
-		HttpRequest	_request;
-		std::string		_contentType;
-		std::string		_statusCode;
-		std::string		_httpVersion;
-		char			*_bodyContent;
-		int				_contentLength;
-		int				_headerLength;
-		bool			_cgi;
-		int				_code;
-		std::string		_respondHeader;
+		HttpRequest						_request;
+		std::string						_contentType;
+		std::string						_statusCode;
+		std::string						_httpVersion;
+		char							*_bodyContent;
+		int								_contentLength;
+		int								_headerLength;
+		bool							_cgi;
+		int								_code;
+		std::string						_respondHeader;
+		std::vector<int, std::string>	_listCode;
 
 	public:
-		ServerRespond(void);
-		ServerRespond(int fd, Config const &server);
-		ServerRespond(ServerRespond const &src);
-		~ServerRespond(void);
-		ServerRespond		&operator=(ServerRespond const &rhs);
+		HttpRespond(void);
+		HttpRespond(int fd, Config const &server);
+		HttpRespond(HttpRespond const &src);
+		~HttpRespond(void);
+		HttpRespond		&operator=(HttpRespond const &rhs);
 		std::string			getRespond(void) const;
 		int					getRespondLength(void) const;
 		HttpRequest const	&getRequest(void) const;
@@ -53,6 +54,6 @@ class ServerRespond
 		void				sendRepond(int socket) const;
 };
 
-std::ostream	&operator<<(std::ostream &out, ServerRespond const &rhs);
+std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs);
 
 #endif

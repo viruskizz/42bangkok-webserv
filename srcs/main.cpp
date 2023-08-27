@@ -1,6 +1,6 @@
 #include "Webserv.hpp"
-#include "./server/ServerRespond.hpp"
-#include "./server/RequestHeader.hpp"
+#include "./server/HttpRespond.hpp"
+#include "./server/HttpRequest.hpp"
 #include "./server/Server.hpp"
 
 Server *server;

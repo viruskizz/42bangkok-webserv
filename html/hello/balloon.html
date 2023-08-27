@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>balloon</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+.container {
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.balloon {
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;	
+}
+</style>
+	</head>
+	<body>
+		
+		<div class="container">
+			<div class="balloon" id="balloon" onclick="ft_balloon_change();"
+				onmouseout="ft_decread_balloon();" style="background-color:red;cursor:pointer;"></div>
+		</div>
+
+	<script>
+		let balloon = document.getElementById("balloon");
+
+		function	ft_change_background(mode)
+		{
+			let	color = balloon.style.backgroundColor;
+
+			if (mode === "normal")
+			{
+				if (color == "red")
+					balloon.style.background = "green";
+				else if (color == "green")
+					balloon.style.background = "blue";
+				else if (color == "blue")
+					balloon.style.background = "red";
+			}
+			else if (mode === "reverse")
+			{
+				if (color === "red")
+					balloon.style.background = "blue";
+				else if (color === "blue")
+					balloon.style.background = "green";
+				else if (color === "green")
+					balloon.style.background = "red";
+			}
+		}
+
+		function	ft_balloon_change()
+		{
+			let	size = balloon.clientWidth;
+
+			if (size < 420 && size != 415)
+			{
+				balloon.style.width = (size + 10) + "px";
+				balloon.style.height = (size + 10) + "px";
+				ft_change_background("normal");
+			}
+			else
+			{
+				balloon.style.width = "200px";
+				balloon.style.height = "200px";
+				ft_change_background("normal");
+			}
+		}
+
+		function	ft_decread_balloon()
+		{
+			let size = balloon.clientWidth;
+
+			if (size != 200)
+			{
+				balloon.style.width = (size - 5) + "px";
+				balloon.style.height = (size - 5) + "px";
+				ft_change_background("reverse");
+			}
+		}
+	</script>
+	</body>
+</html>

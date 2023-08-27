@@ -26,6 +26,7 @@ void Server::exitWithError(char *errorMessage, int mode)
 void Server::init()
 {
 	int errorNumber;
+	int	optionInput;
 	Config *configFile = new Config();
 
 	memset(&m_hint, '\0', sizeof(struct addrinfo));
@@ -47,11 +48,16 @@ void Server::init()
 			continue;
 
 		// * set option for socket;
+		optionInput = 1;
+		if (setsockopt(m_socketFd, SOL_SOCKET, SO_REUSEADDR ,&optionInput, ptr->ai_addrlen))
+			exitWithError((char *)"wevserv: ERROR ", EE_PERR);
+		if (setsockopt(m_socketFd, SOL_SOCKET, SO_REUSEPORT ,&optionInput, ptr->ai_addrlen))
+			exitWithError((char *)"wevserv: ERROR ", EE_PERR);
 
 		// * bind socket with value in struct sockaddr_in;
 		if (bind(m_socketFd, ptr->ai_addr, ptr->ai_addrlen) == 0)
 		{
-			// fcntl(socketFd, F_SETFL, O_NONBLOCK);
+			fcntl(m_socketFd, F_SETFL, O_NONBLOCK);
 			m_serverSockets.push_back(m_socketFd);
 			m_address.push_back(ptr);
 			break;
@@ -84,10 +90,8 @@ void Server::start(void)
 		std::cout << "********** Client Sent Some Request **********" << std::endl;
 		for (int socket = 0; socket < maxSocketFd; ++socket)
 		{
-			// std::cout << "hello in FD_ISSET i = " << i << std::endl;
 			if (FD_ISSET(socket, &readySocket))
 			{
-				// std::cout << "checkFd |" << i << "| in serverSocket" << std::endl;
 				bool isFound = false;
 				for (int j = 0; j < m_serverSockets.size(); ++j)
 				{
@@ -97,7 +101,7 @@ void Server::start(void)
 						std::cout << "********** Accept Client Request ***********" << std::endl;
 						struct addrinfo *address = m_address[j];
 						clientSocket = accept(jsocket, address->ai_addr, &address->ai_addrlen);
-						// fcntl(clientSocket, F_SETFL, O_NONBLOCK);
+						fcntl(clientSocket, F_SETFL, O_NONBLOCK);
 						if (clientSocket < 0)
 							Server::exitWithError((char *)"webserv: ERROR: ", EE_PERR);
 						FD_SET(clientSocket, &currentSocket);
@@ -106,18 +110,17 @@ void Server::start(void)
 						isFound = true;
 						std::cout << "********** Accept Client Done **********" << std::endl;
 					}
-					// std::cout << "hello in isFound loop | j = " << j << " | serverSocker[j] : " << serverSocket[j] << std::endl;
 				}
-				if (isFound)
+				if (!isFound)
 				{
 					std::cout << "********** Sending Respond to Client **********" << std::endl;
 					fcntl(socket, F_SETFL, O_NONBLOCK);
-					ServerRespond respond(socket, *configFile);
-					respond.sendRepond(socket);
-					// write(socket, respond.getRespond().c_str(), respond.getRespondLength());
+					HttpRequest request(socket, *configFile);
+					// std::cout << request << std::endl;
+					HttpRespond respond(socket, request, *configFile);
 					// std::cout << respond << std::endl;
+					respond.sendRepond(socket);
 					close(socket);
-					// serverHandler(i, *configFile);
 					FD_CLR(socket, &currentSocket);
 					std::cout << "********** Sent Respond to Client **********" << std::endl;
 				}

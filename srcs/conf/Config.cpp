@@ -14,12 +14,12 @@ Config::Config(std::string const & filename) : m_filename(filename), m_filedata(
 
 Config::~Config() {
 	std::cout << "[Config] destructor is called" << std::endl;
-	for (std::vector<ServerConf*>::iterator it = this->m_servers.begin();
-		it != this->m_servers.end();)
-	{
-		delete *it;
-		this->m_servers.erase(it);
-	}
+	// for (std::vector<ServerConf*>::iterator it = this->m_servers.begin();
+	// 	it != this->m_servers.end();)
+	// {
+	// 	delete *it;
+	// 	this->m_servers.erase(it);
+	// }
 	std::cout << "size: " << this->m_servers.size() << std::endl;
 }
 

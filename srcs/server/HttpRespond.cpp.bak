@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ServerRespond.cpp                                  :+:      :+:    :+:   */
+/*   HttpRespond.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,26 +10,26 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ServerRespond.hpp"
+#include "HttpRespond.hpp"
 
 static std::string	initContentType(std::string const &url);
 static int			initBodyContent(HttpRequest const &request, Config const &server, char **body);
 static std::string	initStatusCode(int code);
-static int			initHeaderLength(ServerRespond const &respond);
+static int			initHeaderLength(HttpRespond const &respond);
 static int			execCommondGetwayInterface(HttpRequest const &request, Config const &server, char **content);
 static int			methodGET(HttpRequest const &request, Config const &server, char **body, int *length);
-static int			initHeader(ServerRespond &respond, HttpRequest const &request);
+static int			initHeader(HttpRespond &respond, HttpRequest const &request);
 
-ServerRespond::ServerRespond(void) :
+HttpRespond::HttpRespond(void) :
 _request(), _contentType(""), _statusCode(""), _httpVersion("HTTP/1.1 "), _bodyContent(NULL), _contentLength(0), _headerLength(0), _cgi(0), _code(0), _respondHeader("")
 {
-	std::cout << "(ServerRespond) Defualt constructor is called." << std::endl;
+	std::cout << "(HttpRespond) Defualt constructor is called." << std::endl;
 }
 
-ServerRespond::ServerRespond(int fd, Config const &server) :
+HttpRespond::HttpRespond(int fd, Config const &server) :
 _request(fd), _contentType(""), _statusCode(""), _httpVersion("HTTP/1.1 "), _bodyContent(NULL), _contentLength(0), _headerLength(0), _cgi(0), _code(200), _respondHeader("")
 {
-	std::cout << "(ServerRespond) Constructor is called." << std::endl;
+	std::cout << "(HttpRespond) Constructor is called." << std::endl;
 	if (this->_request.getUrl().find("/cgi-bin/") != std::string::npos)
 	{
 		this->_contentLength = execCommondGetwayInterface(this->_request, server, &this->_bodyContent);
@@ -57,20 +57,20 @@ _request(fd), _contentType(""), _statusCode(""), _httpVersion("HTTP/1.1 "), _bod
 	}
 }
 
-ServerRespond::ServerRespond(ServerRespond const &src)
+HttpRespond::HttpRespond(HttpRespond const &src)
 {
-	std::cout << "(ServerRespond) Copy constructor is called." << std::endl;
+	std::cout << "(HttpRespond) Copy constructor is called." << std::endl;
 	*this = src;
 }
 
-ServerRespond::~ServerRespond(void)
+HttpRespond::~HttpRespond(void)
 {
 	std::cout << "(ServerRepond) Destructor is called." << std::endl;
 	if (this->_bodyContent)
 		delete [] this->_bodyContent;
 }
 
-ServerRespond	&ServerRespond::operator=(ServerRespond const &rhs)
+HttpRespond	&HttpRespond::operator=(HttpRespond const &rhs)
 {
 	std::cout << "(ServerRepond) Copy Assigntment operator is called." << std::endl;
 	if (this != &rhs)
@@ -93,47 +93,47 @@ ServerRespond	&ServerRespond::operator=(ServerRespond const &rhs)
 	return (*this);
 }
 
-HttpRequest const	&ServerRespond::getRequest(void) const
+HttpRequest const	&HttpRespond::getRequest(void) const
 {
 	return (this->_request);
 }
 
-std::string const	&ServerRespond::getContentType(void) const
+std::string const	&HttpRespond::getContentType(void) const
 {
 	return (this->_contentType);
 }
 
-std::string const	&ServerRespond::getStatusCode(void) const
+std::string const	&HttpRespond::getStatusCode(void) const
 {
 	return (this->_statusCode);
 }
 
-std::string const	&ServerRespond::getHttpVersion(void) const
+std::string const	&HttpRespond::getHttpVersion(void) const
 {
 	return (this->_httpVersion);
 }
 
-char const	*ServerRespond::getBodyContent(void) const
+char const	*HttpRespond::getBodyContent(void) const
 {
 	return (this->_bodyContent);
 }
 
-int	ServerRespond::getBodyLength(void) const
+int	HttpRespond::getBodyLength(void) const
 {
 	return (this->_contentLength);
 }
 
-int	ServerRespond::getHeaderLength(void) const
+int	HttpRespond::getHeaderLength(void) const
 {
 	return (this->_headerLength);
 }
 
-int	ServerRespond::getRespondLength(void) const
+int	HttpRespond::getRespondLength(void) const
 {
 	return (this->_headerLength + this->_contentLength);
 }
 
-void	ServerRespond::sendRepond(int socket) const
+void	HttpRespond::sendRepond(int socket) const
 {
 	if (this->_cgi)
 		write(socket, this->_bodyContent, this->_contentLength);
@@ -142,28 +142,28 @@ void	ServerRespond::sendRepond(int socket) const
 	
 }
 
-std::string	ServerRespond::getRespond(void) const
+std::string	HttpRespond::getRespond(void) const
 {
-	std::string	serverRespond;
+	std::string	HttpRespond;
 
-	serverRespond = this->_respondHeader;
+	HttpRespond = this->_respondHeader;
 	std::cout << this->_respondHeader <<std::endl;
 	for (int i = 0; i < this->_contentLength; ++i)
-		serverRespond.append(1, this->_bodyContent[i]);
-	return (serverRespond);
+		HttpRespond.append(1, this->_bodyContent[i]);
+	return (HttpRespond);
 }
 
-void	ServerRespond::setRespondHeader(std::string const &respondHeader)
+void	HttpRespond::setRespondHeader(std::string const &respondHeader)
 {
 	this->_respondHeader = respondHeader;
 }
 
-int		ServerRespond::getCode(void) const
+int		HttpRespond::getCode(void) const
 {
 	return (this->_code);
 }
 
-static int	initHeader(ServerRespond &respond, HttpRequest const &request)
+static int	initHeader(HttpRespond &respond, HttpRequest const &request)
 {
 	std::string	respondHeader;
 
@@ -181,7 +181,7 @@ static int	initHeader(ServerRespond &respond, HttpRequest const &request)
 	return (respondHeader.size());
 }
 
-std::ostream	&operator<<(std::ostream &out, ServerRespond const &rhs)
+std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs)
 {
 	out << rhs.getHttpVersion() << rhs.getStatusCode() << std::endl;
 	out << "Content-Type: " << rhs.getContentType() << std::endl;
