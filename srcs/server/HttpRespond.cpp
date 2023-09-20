@@ -29,7 +29,15 @@ HttpRespond::HttpRespond(int socket, HttpRequest &request, Config const &server)
 _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 {
 	std::cout << "(HttpRespond) Constructor is called." << std::endl;
-	if (request.getRequestHeader().at("URL").find("/cgi-bin/") != std::string::npos)
+
+	if (server.getServers().at(request.getServerNum())->getClientSize() != -1
+		&& request.getRequestHeader().find("Content-Length") != request.getRequestHeader().end()
+		&& stringToint(request.getRequestHeader().at("Content-Length")) > server.getServers().at(request.getServerNum())->getClientSize())
+		this->_code = 413;
+	else if (request.getRequestBody().size() && request.getRequestHeader().find("Content-Length") == request.getRequestHeader().end())
+		this->_code = 411;
+	else if (request.getRequestHeader().at("URL").find("/cgi-bin/") != std::string::npos
+		&& !server.getServers().at(request.getServerNum())->getCGI().empty())
 	{
 		CommonGatewayInterface	cgi(server, request);
 
@@ -43,11 +51,14 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 	}
 	else
 	{
-		if (request.getRequestHeader().at("Method") == "GET")
-			this->_code = methodGET(request);
-		else if (request.getRequestHeader().at("Method") == "POST")
+		if (request.getRequestHeader().at("Method") == "GET"
+			&& findStringInVector(server.getServers().at(request.getServerNum())->getMethod(), "GET"))
+			this->_code = methodGET(request, server);
+		else if (request.getRequestHeader().at("Method") == "POST"
+			&& findStringInVector(server.getServers().at(request.getServerNum())->getMethod(), "POST"))
 			this->_code = methodPOST(request, server);
-		else if (request.getRequestHeader().at("Method") == "DELETE")
+		else if (request.getRequestHeader().at("Method") == "DELETE"
+			&& findStringInVector(server.getServers().at(request.getServerNum())->getMethod(), "DELETE"))
 			this->_code = methodDELETE(request);
 		else
 			this->_code = 405;
@@ -56,7 +67,13 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 	{
 		if (this->_code != 200)
 		{
-			this->_bodyContent = this->_statusCodeBody.at(this->_code);
+			if (server.getServers().at(request.getServerNum())->getReturnPage().find(intToString(this->_code)) != server.getServers().at(request.getServerNum())->getReturnPage().end())
+			{
+				if (this->readFile(server.getServers().at(request.getServerNum())->getReturnPage().at(intToString(this->_code))) != 200)
+					this->_bodyContent = this->_statusCodeBody.at(this->_code);
+			}
+			else
+				this->_bodyContent = this->_statusCodeBody.at(this->_code);
 			this->_html = true;
 		}
 		this->initHeader(request);
@@ -179,37 +196,60 @@ std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs)
 
 // static int	getFileDiscriptor(HttpRequest &request, Config const &server);
 
-int	HttpRespond::methodGET(HttpRequest const &request)
+int	HttpRespond::readFile(std::string const &fileName)
 {
-	DIR				*directory;
-	struct dirent	*entry;
+	int				readByte;
+	char			*buffer;
+	int				fd;
+
+	fd = open(fileName.c_str(), O_RDONLY);
+	if (fd < 0)
+		return (404);
+	buffer = new char[READSIZE + 1];
+	while (true)
+	{
+		readByte = read(fd, buffer, READSIZE);
+		buffer[readByte] = '\0';
+		if (readByte <= 0)
+			break ;
+		for (int index = 0; index < readByte; ++index)
+			this->_bodyContent.append(1, buffer[index]);
+	}
+	delete [] buffer;
+	close(fd);
+	return (200);
+}
+
+int	HttpRespond::methodGET(HttpRequest const &request, Config const &server)
+{
 	int				readByte;
 	char			*buffer;
 	int				fd;
 
 	this->_bodyContent.clear();
-	if (!this->listDirectory(request))
+	if (!this->listDirectory(request, server))
 	{
-		fd = open(request.getPath().c_str(), O_RDONLY);
-		if (fd < 0)
-			return (404);
-		buffer = new char[READSIZE + 1];
-		while (true)
-		{
-			readByte = read(fd, buffer, READSIZE);
-			buffer[readByte] = '\0';
-			if (readByte <= 0)
-				break ;
-			for (int index = 0; index < readByte; ++index)
-				this->_bodyContent.append(1, buffer[index]);
-		}
-		delete [] buffer;
-		close(fd);
+		return (this->readFile(request.getPath()));
+		// fd = open(request.getPath().c_str(), O_RDONLY);
+		// if (fd < 0)
+		// 	return (404);
+		// buffer = new char[READSIZE + 1];
+		// while (true)
+		// {
+		// 	readByte = read(fd, buffer, READSIZE);
+		// 	buffer[readByte] = '\0';
+		// 	if (readByte <= 0)
+		// 		break ;
+		// 	for (int index = 0; index < readByte; ++index)
+		// 		this->_bodyContent.append(1, buffer[index]);
+		// }
+		// delete [] buffer;
+		// close(fd);
 	}
  	return (200);
 }
 
-bool	HttpRespond::listDirectory(HttpRequest const &request)
+bool	HttpRespond::listDirectory(HttpRequest const &request, Config const &server)
 {
 	DIR				*directory;
 	DIR				*tempdir;
@@ -217,6 +257,8 @@ bool	HttpRespond::listDirectory(HttpRequest const &request)
 	std::string		link;
 	std::string		name;
 
+	if (!server.getServers().at(request.getServerNum())->getDirList())
+		return (false);
 	directory = opendir(request.getPath().c_str());
 	if (!directory)
 		return (false);
@@ -257,7 +299,7 @@ bool	HttpRespond::listDirectory(HttpRequest const &request)
 
 int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server)
 {
-	std::cout << "postttt" << std::endl;
+	std::cout << "[Debug]" << "postttt" << std::endl;
 	if (request.getRequestBody().size() < 1)
 		return (400);
 	for (int i = 0; i < request.getRequestBody().size(); ++i) // TODO can remove if dont recive post with multi;
@@ -274,7 +316,7 @@ int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server)
 			std::string		name;
 			std::string		path;
 
-			// std::cout << request << std::endl;
+			// std::cout << "[Debug]" << request << std::endl;
 			path = std::string(ROOT) + "/download";
 			if (access(path.c_str(),F_OK))
 				path = ROOT;
@@ -351,7 +393,7 @@ int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server)
 // 	close(fd);
 // 	return (true);
 // }
-
+//
 // int initBodyContent(HttpRequest const &request, Config const &server)
 // {
 // 	char	*buffer;
@@ -381,7 +423,6 @@ int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server)
 // 	close(fd);
 // 	return (bodySize);
 // }
-
 
 // TODO change ROOT to real root;
 // static int	getFileDiscriptor(HttpRequest &request, Config const &server)
@@ -451,6 +492,8 @@ static std::map<int, std::string>	initStatusCodeBody(void)
 	list.insert(std::pair<int, std::string>(404, BODY404));
 	list.insert(std::pair<int, std::string>(405, BODY405));
 	list.insert(std::pair<int, std::string>(408, BODY408));
+	list.insert(std::pair<int, std::string>(411, BODY411));
+	list.insert(std::pair<int, std::string>(413, BODY413));
 	list.insert(std::pair<int, std::string>(500, BODY500));
 	list.insert(std::pair<int, std::string>(502, BODY502));
 	return (list);

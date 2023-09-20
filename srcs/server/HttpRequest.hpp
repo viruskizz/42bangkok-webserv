@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 18:57:45 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/25 05:03:03 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/09/15 22:00:38 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 # include <exception>
 # include "../Webserv.hpp"
 # include "RequestBody.hpp"
+# include "../conf/Config.hpp"
 
 class RequestBody;
 class HttpRequest
@@ -36,6 +37,7 @@ class HttpRequest
 		std::vector<RequestBody> const				&getRequestBody(void) const;
 		std::string	const							&getRequestRaw(void) const;
 		std::string	const							&getPath(void) const;
+		int											getServerNum(void) const;
 		void										setPath(std::string &path);
 
 		class CannotReadSocketException : public std::exception
@@ -58,6 +60,8 @@ class HttpRequest
 		std::string							_raw;
 		std::map<std::string, std::string>	_requestHeader;
 		std::vector<RequestBody>			_requestBody;
+		int									_serverNum;
+		// * [MARK] for mutil request bodys
 		// std::map<std::string, std::string>	_requestBody;
 
 		void								readSocket(int socket);

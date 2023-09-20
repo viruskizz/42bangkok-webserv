@@ -1,24 +1,35 @@
 #pragma once
 
-# include "../srcs/conf/Config.hpp"
-# include "../srcs/utils/StringUtil.hpp"
-# include <sys/socket.h>
-# include <sys/signal.h>
-# include <netinet/in.h>
+# include <cstring>
+# include <iostream>
+# include <fstream>
+# include <cstdio>
+# include <cstdlib>
+# include <csignal>
+# include <string>
+# include <vector>
+# include <map>
+# include <netdb.h>
+# include <fcntl.h>
 # include <arpa/inet.h>
 # include <dirent.h>
 # include <unistd.h>
-# include <cstring>
-# include <iostream>
 # include <netdb.h>
-# include <fcntl.h>
-# include <cstdio>
-# include "./server/HttpRequest.hpp"
-# include <cstdlib>
-# include <csignal>
 # include <sys/types.h>
 # include <sys/wait.h>
-# include <vector>
+# include <sys/socket.h>
+# include <sys/signal.h>
+# include <netinet/in.h>
+# include "./utils/StringUtil.hpp"
+
+using std::string;
+using std::vector;
+using std::map;
+typedef map<string, string> StringMap;
+
+# define C_RED "\033[0;31m"
+# define C_YELLOW "\033[0;33m"
+# define C_RESET "\033[0m"
 
 // #include <iostream>
 # define BREAK_LINE (char *)"\r\n"
@@ -72,3 +83,4 @@ std::string					stringTrim(std::string &string, std::string const &delimeters);
 std::vector<std::string>	split(std::string const &string, char delimeter);
 char						*stringTosChar(std::string const &string);
 char						**vectorStringToChar(std::vector<std::string> vector);
+bool	                    findStringInVector(std::vector<std::string> const & vector, std::string const &string);

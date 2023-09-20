@@ -5,7 +5,7 @@
 #include "./HttpRespond.hpp"
 
 # define PORT "8080"
-# define BACK_LOG 10
+# define BACK_LOG 100
 
 class Server
 {
@@ -27,6 +27,6 @@ public:
 	std::vector<struct addrinfo *> getAddress(void);
 
 	void static exitWithError(char *errorMessage, int mode);
-	void init(void);
-	void start(void);
+	void init(Config const &configFile);
+	void start(Config const &configFile);
 };

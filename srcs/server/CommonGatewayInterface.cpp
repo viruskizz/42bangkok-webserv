@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:43:02 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/25 05:17:10 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/08/30 20:13:52 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ _cgiStatus(200)
 	std::cout << "(CommonGatewayInterface) Defualt constructor is called." << std::endl;
 }
 
-CommonGatewayInterface::CommonGatewayInterface(Config const &server, HttpRequest const &request) : _cgiStatus(200), _server(server)
+CommonGatewayInterface::CommonGatewayInterface(Config const &server, HttpRequest const &request) : _cgiStatus(200)
 {
 	std::cout << "(CommonGatewayInterface) Constructor is called." << std::endl;
 	this->initScriptURI(server, request);

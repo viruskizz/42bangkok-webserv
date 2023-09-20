@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:28:18 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/17 22:19:47 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/09/15 23:26:06 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,8 @@ std::string	stringTrim(std::string &string, std::string const &delimeters)
 			break ;
 		}
 	}
+	if (end == start)
+		return (result); 
 	result = string.substr(start, ((end - start) + 1));
 	return (result);
 }
@@ -284,4 +286,14 @@ char	**vectorStringToChar(std::vector<std::string> vector)
 	}
 	result[index] = NULL;
 	return (result);
+}
+
+bool	findStringInVector(std::vector<std::string> const & vector, std::string const &string)
+{
+	for(std::vector<std::string>::const_iterator it = vector.begin(); it != vector.end(); ++it)
+	{
+		if (*it == string)
+			return (true);
+	}
+	return (false);
 }

@@ -6,28 +6,27 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/08 23:20:21 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/25 05:03:04 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/09/15 22:05:08 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
 
-HttpRequest::HttpRequest(void) : _raw(""), _path("")
+HttpRequest::HttpRequest(void) : _raw(""), _path("") , _serverNum(0)
 {
 	std::cout << "(HttpRequest) Defualt constructor is called." << std::endl;
 }
  
-HttpRequest::HttpRequest(int socket, Config const &server)
+HttpRequest::HttpRequest(int socket, Config const &server) : _serverNum(0)
 {
 	std::cout << "(HttpRequest) Constructor is called." << std::endl;
 	this->readSocket(socket);
-	std::cout << "paser" << std::endl;
+	// std::cout << "[Debug]" << "paser" << std::endl;
 	this->requestPaser();
-	std::cout << "initpath" << std::endl;
+	// std::cout << "[Debug]" << "initpath" << std::endl;
 	for (int index = 0; index < this->_requestHeader.at("Method").size(); ++index)
 		this->_requestHeader.at("Method").at(index) = toupper(this->_requestHeader.at("Method").at(index));
-	// std::cout << this->_requestHeader.at("Method") << std::endl;
-	// TODO init file path with url + config file; FilePath
+	// std::cout << "[Debug]" << this->_requestHeader.at("Method") << std::endl;
 	this->initPath(server);
 }
 
@@ -72,6 +71,11 @@ std::string const	&HttpRequest::getRequestRaw(void) const
 std::string const	&HttpRequest::getPath(void) const
 {
 	return (this->_path);
+}
+
+int	HttpRequest::getServerNum(void) const
+{
+	return (this->_serverNum);
 }
 
 void	HttpRequest::setPath(std::string &path)
@@ -150,16 +154,6 @@ void	HttpRequest::requestPaser(void)
 	}
 }
 
-// ------WebKitFormBoundaryfsGCxxQTQMWW7Sz0
-// Content-Disposition: form-data; name="file"; filename="test123.sh"
-// Content-Type: text/x-sh
-
-// #!bin/bash
-
-// ehco helo
-
-// ------WebKitFormBoundaryfsGCxxQTQMWW7Sz0--
-
 std::vector<std::string>::iterator	HttpRequest::requestBodyPaser(
 	std::vector<std::string>::iterator it, std::vector<std::string> &requestLine)
 {
@@ -185,7 +179,7 @@ std::vector<std::string>::iterator	HttpRequest::requestBodyPaser(
 			&& it != requestLine.end()
 			&& it->find(this->_requestHeader["Boundary"]) == std::string::npos)
 		{
-			// std::cout << "-> " << *it << std::endl;
+			// std::cout << "[Debug]" << "-> " << *it << std::endl;
 			if (it->find("Content-Disposition") != std::string::npos)
 				fileName = it->substr(it->rfind('=') + 2, it->rfind('\"') - (it->rfind('=') + 2));
 			else if (it->find("Content-Type") != std::string::npos)
@@ -220,24 +214,56 @@ std::vector<std::string>::iterator	HttpRequest::requestBodyPaser(
 
 void	HttpRequest::initPath(Config const &server)
 {
-	std::string path;
+	std::string pathURL;
 	int			count;
 
 	count = 0;
+	pathURL = (this->_requestHeader.find("URL") != this->_requestHeader.end()) ? this->_requestHeader.at("URL") : "";
+	if (pathURL.empty())
+		return ;
+	while (this->_serverNum < server.getServers().size())
+	{
+		if (server.getServers().at(this->_serverNum)->getServerName() == this->_requestHeader.at("Host"))
+			break ;
+		++this->_serverNum;
+	}
 	if (this->_requestHeader.at("URL") == "/")
 	{
-		while (count < server.getIndex().size())
-		{
-			this->_path.clear();
-			this->_path = std::string(ROOT) + "/" + server.getIndex()[count++];
-			if (!access(this->_path.c_str(), F_OK))
-				break ;
-		}
+		this->_path = this->_path = server.getServers().at(this->_serverNum)->getRoot() + "/" + server.getIndex();
+		// * [MARK] when mutiple index (index type is std::vector);
+		// while (count < server.getIndex().size())
+		// {
+		// 	this->_path.clear();
+		// 	this->_path = server.getServers().at(index)->getRoot() + "/" + server.getIndex().at(count++);
+		// 	if (!access(this->_path.c_str(), F_OK))
+		// 	{
+		// 		std::cout << this->_path << std::endl;
+		// 		break ;
+		// 	}
+		// }
 	}
 	else
-		this->_path = ROOT + this->_requestHeader.at("URL");
-	// std::cout << "-path-> " << this->_path << std::endl;
+	{
+		for (std::vector<std::map<std::string, std::string> >::const_iterator it = server.getServers().at(this->_serverNum)->getLocations().begin();
+			it != server.getServers().at(this->_serverNum)->getLocations().end(); ++it)
+		{
+			if (it->find("path") != it->end() && it->find("root") != it->end() && pathURL.find(it->at("path")) != std::string::npos)
+			{
+				int position = pathURL.find(it->at("path"));
+				pathURL.erase(position, it->at("path").length());
+				pathURL.insert(position, it->at("root"));
+				std::cout << "hello:" << this->_serverNum << std::endl;
+				break ;
+			}
+		}
+		this->_path = server.getServers().at(this->_serverNum)->getRoot() + pathURL;
+	}
+	std::cout << "-path----> " << this->_path << std::endl;
+	std::cout << "-pathCom-> " << server.getServers().at(this->_serverNum)->getRoot() + this->_requestHeader.at("URL") << std::endl;
+	// * [MARK] if URL effect with rewrite.
+	// this->_requestHeader.at("URL") = this->_path;
 }
+
 
 static void	printMapKeyValue(std::map<std::string, std::string> const &map);
 

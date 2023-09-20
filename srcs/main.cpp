@@ -3,6 +3,20 @@
 #include "./server/HttpRequest.hpp"
 #include "./server/Server.hpp"
 
+// for dev config
+// int	main(int argc, char **argv)
+// {
+// 	Config	*configFile;
+
+// 	if (argc == 1)
+// 		configFile = new Config();
+// 	else if (argc == 2)
+// 		configFile = new Config(argv[1]);
+// 	Config::debug(*configFile);
+// 	return (EXIT_SUCCESS);
+// }
+
+
 Server *server;
 
 static void	signalHandle(int signalNumber)
@@ -32,7 +46,8 @@ int	main(int argc, char **argv)
 	else
 		Server::exitWithError((char *)"webserv: Error: wrong argument.\n(hint) ./webserv [configurtion_file]", EE_NONE);
 	server = new Server();
-	server->init();
-	server->start();
+	configFile->printConfig();
+	server->init(*configFile);
+	server->start(*configFile);
 	return (EXIT_SUCCESS);
 }
