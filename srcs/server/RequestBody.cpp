@@ -6,13 +6,13 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 01:30:55 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/22 21:00:20 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/09/30 00:26:57 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestBody.hpp"
 
-RequestBody::RequestBody(void) : _method(0), _fileName(""), _content(""), _fileType("")
+RequestBody::RequestBody(void) : _method(0), _fileName(""), _content(""), _fileType(""), _contentLength(-1)
 {
 	std::cout << "(RequestBody) Defualt constructor is called." << std::endl;
 }
@@ -25,7 +25,7 @@ RequestBody::RequestBody(RequestBody const &rhs)
 
 RequestBody::~RequestBody(void)
 {
-	std::cout << "(RequestBody) Destructor is called." << std::endl;
+	// std::cout << "(RequestBody) Destructor is called." << std::endl;
 }
 
 RequestBody	&RequestBody::operator=(RequestBody const &rhs)
@@ -37,6 +37,7 @@ RequestBody	&RequestBody::operator=(RequestBody const &rhs)
 		this->_fileName = rhs._fileName;
 		this->_content = rhs._content;
 		this->_fileType = rhs._fileType;
+		this->_contentLength = rhs._contentLength;
 	}
 	return (*this);
 }
@@ -54,6 +55,11 @@ std::string const	&RequestBody::getFileName(void) const
 std::string const	&RequestBody::getContent(void) const
 {
 	return (this->_content);
+}
+
+int	RequestBody::getContentLength(void) const
+{
+	return (this->_contentLength);
 }
 
 void	RequestBody::setMethod(int input)
@@ -74,6 +80,11 @@ void	RequestBody::setFileType(std::string &fileType)
 void	RequestBody::setContent(std::string &content)
 {
 	this->_content = content;
+}
+
+void	RequestBody::setContentLength(int lenght)
+{
+	this->_contentLength = lenght;
 }
 
 std::ostream	&operator<<(std::ostream &out, RequestBody const &rhs)

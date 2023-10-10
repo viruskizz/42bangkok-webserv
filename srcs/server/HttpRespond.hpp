@@ -34,17 +34,20 @@ class HttpRespond
 		static std::map<int, std::string> const	_statusCodeBody;
 
 		int			methodGET(HttpRequest const &request, Config const &server);
-		int			methodPOST(HttpRequest const &request, Config const &server);
+		int			methodPOST(HttpRequest const &request, Config const &server, int bodyIndex);
+		int			methodPOSTUpload(HttpRequest const &request, Config const &server, int bodyIndex);
 		int			methodDELETE(HttpRequest const &request);
+		int			methodPUT(HttpRequest const &request, Config const &server);
 
 		void		initHeader(HttpRequest const &request);
+		void		setErrorPage(HttpRequest const &request, Config const &server);
 		bool		listDirectory(HttpRequest const &request, Config const &server);
 		int			readFile(std::string const &filename);
 		// bool		initBodyContent(HttpRequest &request, Config const &server);
 
 	public:
 		HttpRespond(void);
-		HttpRespond(int socket, HttpRequest &request, Config const &server);
+		HttpRespond(int socket, HttpRequest &request, Config const &server, int bodyIndex);
 		HttpRespond(HttpRespond const &src);
 		~HttpRespond(void);
 		HttpRespond			&operator=(HttpRespond const &rhs);

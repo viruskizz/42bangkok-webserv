@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:28:18 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/09/15 23:26:06 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/09/29 22:36:21 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -276,12 +276,13 @@ char	**vectorStringToChar(std::vector<std::string> vector)
 	char	**result;
 	int		index;
 
+	index = 0;
 	result = new char * [vector.size() + 1];
 	if (!result)
 		return (NULL);
 	while (index < vector.size())
 	{
-		result[index] = stringTosChar(vector[index]);
+		result[index] = stringTosChar(vector.at(index));
 		index++;
 	}
 	result[index] = NULL;
@@ -296,4 +297,34 @@ bool	findStringInVector(std::vector<std::string> const & vector, std::string con
 			return (true);
 	}
 	return (false);
+}
+
+int	hexadacimalToInt(const char *hexadecimal)
+{
+	int		result;
+	int		index;
+	char	letter;
+	int		base;
+
+	result = 0;
+	index = strlen(hexadecimal) - 1;
+	base = 1;
+	if (!hexadecimal)
+		return (-1);
+	while (index >= 0)
+	{
+		if (isdigit(hexadecimal[index]))
+			result += (hexadecimal[index] - '0') * base;
+		else if (isalpha(hexadecimal[index]))
+		{
+			letter = toupper(hexadecimal[index]);
+			if (letter >= 'A' && letter <= 'F')
+				result += (letter - 55) * base;
+		}
+		else
+			return (-1);
+		base *= 16;
+		index--;
+	}
+	return (result);
 }

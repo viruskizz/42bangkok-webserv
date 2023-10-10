@@ -144,10 +144,10 @@ void Config::printConfig(void) const
 		std::cout << "• index         : " << this->m_servers.at(i)->getIndex() << std::endl;
 		std::cout << "• directoryList : " << this->m_servers.at(i)->getDirList() << std::endl;
 		std::cout << "• clientSize    : " << this->m_servers.at(i)->getClientSize() << std::endl;
-		if (this->m_servers.at(i)->getCGI().empty())
-			std::cout << "• cgi           : none" << std::endl;
-		else
-			std::cout << "• cgi           : " << this->m_servers.at(i)->getCGI() << std::endl;
+		// if (this->m_servers.at(i)->getCGI().empty())
+		// 	std::cout << "• cgi           : none" << std::endl;
+		// else
+		// 	std::cout << "• cgi           : " << this->m_servers.at(i)->getCGI() << std::endl;
 		std::cout << "• method        : ";
 		for (vector<string>::const_iterator it = this->m_servers.at(i)->getMethod().begin();
 			it != this->m_servers.at(i)->getMethod().end(); ++it)

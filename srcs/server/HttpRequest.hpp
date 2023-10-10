@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 18:57:45 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/09/15 22:00:38 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/06 20:46:49 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,12 @@ class HttpRequest
 		HttpRequest	&operator=(HttpRequest const &rhs);
 		std::map<std::string, std::string> const	&getRequestHeader(void) const;
 		std::vector<RequestBody> const				&getRequestBody(void) const;
+		std::vector<std::string> const				&getMethodAllow(void) const;
 		std::string	const							&getRequestRaw(void) const;
 		std::string	const							&getPath(void) const;
+		std::string const							&getFileCGI(void) const;
 		int											getServerNum(void) const;
+		int											getMaxBody(void) const;
 		void										setPath(std::string &path);
 
 		class CannotReadSocketException : public std::exception
@@ -61,13 +64,21 @@ class HttpRequest
 		std::map<std::string, std::string>	_requestHeader;
 		std::vector<RequestBody>			_requestBody;
 		int									_serverNum;
-		// * [MARK] for mutil request bodys
-		// std::map<std::string, std::string>	_requestBody;
+		std::string							_fileCGI;
+		int									_maxBody;
+		std::vector<std::string>			_methodAllow;
+		bool								_badRequest;
 
 		void								readSocket(int socket);
 		void								requestPaser(void);
-		void								initPath(Config const &server);
+		void								initHttpRequest(Config const &server);
+		void								initPath(
+			std::vector<std::map<std::string, std::string> >::const_iterator it, std::string &pathURL, Config const &server);
+		bool								innitCGIPath(
+			std::vector<std::map<std::string, std::string> >::const_iterator it, std::string const &pathURL);
 		std::vector<std::string>::iterator	requestBodyPaser(
+			std::vector<std::string>::iterator it, std::vector<std::string> &requestLine);
+		std::vector<std::string>::iterator	requestBodyChunkPaser(
 			std::vector<std::string>::iterator it, std::vector<std::string> &requestLine);
 };
 

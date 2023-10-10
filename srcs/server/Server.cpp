@@ -89,10 +89,10 @@ void Server::start(Config const &configFile)
 	{
 		readySocket = currentSocket;
 
-		std::cout << "********** Waiting for Client Request **********" << std::endl;
+		// std::cout << "********** Waiting for Client Request **********" << std::endl;
 		if (select(maxSocketFd, &readySocket, NULL, NULL, &timeOut) < 0)
 			Server::exitWithError((char *)"webserve: ERROR", EE_PERR);
-		std::cout << "********** Client Sent Some Request **********" << std::endl;
+		// std::cout << "********** Client Sent Some Request **********" << std::endl;
 		for (int socket = 0; socket < maxSocketFd; ++socket)
 		{
 			if (FD_ISSET(socket, &readySocket))
@@ -103,7 +103,7 @@ void Server::start(Config const &configFile)
 					int jsocket = m_serverSockets[j];
 					if (jsocket == socket)
 					{
-						std::cout << "********** Accept Client Request ***********" << std::endl;
+						// std::cout << "********** Accept Client Request ***********" << std::endl;
 						struct addrinfo *address = m_address[j];
 						clientSocket = accept(jsocket, address->ai_addr, &address->ai_addrlen);
 						fcntl(clientSocket, F_SETFL, O_NONBLOCK);
@@ -113,21 +113,38 @@ void Server::start(Config const &configFile)
 						if (clientSocket > maxSocketFd - 1)
 							maxSocketFd = clientSocket + 1;
 						isFound = true;
-						std::cout << "********** Accept Client Done **********" << std::endl;
+						// std::cout << "********** Accept Client Done **********" << std::endl;
 					}
 				}
 				if (!isFound)
 				{
-					std::cout << "********** Sending Respond to Client **********" << std::endl;
+					// std::cout << "********** Sending Respond to Client **********" << std::endl;
 					fcntl(socket, F_SETFL, O_NONBLOCK);
 					HttpRequest request(socket, configFile);
 					// std::cout << request << std::endl;
-					HttpRespond respond(socket, request, configFile);
+					if (request.getRequestHeader().size())
+					{
+						if (request.getRequestBody().size() && request.getFileCGI().empty() && request.getRequestHeader().at("Method") != "PUT")
+						{
+							std::cout << "[Debug] ooooo" << std::endl;
+							for (int count = 0; count < request.getRequestBody().size(); ++count)
+							{
+								HttpRespond respond(socket, request, configFile, count);
+								respond.sendRepond(socket);
+							}
+						}
+						else
+						{
+							std::cout << "[Debug] hello" << std::endl;
+							HttpRespond respond(socket, request, configFile, 0);
+							respond.sendRepond(socket);
+						}
+						
+					}
 					// std::cout << respond << std::endl;
-					respond.sendRepond(socket);
 					close(socket);
 					FD_CLR(socket, &currentSocket);
-					std::cout << "********** Sent Respond to Client **********" << std::endl;
+					// std::cout << "********** Sent Respond to Client **********" << std::endl;
 				}
 			}
 		}

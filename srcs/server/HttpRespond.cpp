@@ -25,60 +25,95 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 	std::cout << "(HttpRespond) Defualt constructor is called." << std::endl;
 }
 
-HttpRespond::HttpRespond(int socket, HttpRequest &request, Config const &server) :
+HttpRespond::HttpRespond(int socket, HttpRequest &request, Config const &server, int bodyIndex) :
 _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 {
 	std::cout << "(HttpRespond) Constructor is called." << std::endl;
 
-	if (server.getServers().at(request.getServerNum())->getClientSize() != -1
-		&& request.getRequestHeader().find("Content-Length") != request.getRequestHeader().end()
-		&& stringToint(request.getRequestHeader().at("Content-Length")) > server.getServers().at(request.getServerNum())->getClientSize())
-		this->_code = 413;
-	else if (request.getRequestBody().size() && request.getRequestHeader().find("Content-Length") == request.getRequestHeader().end())
+	if (request.getServerNum() >= server.getServers().size())
+		this->_code = 502;
+	else if (request.getPath().empty() || request.getRequestHeader().find("Host") == request.getRequestHeader().end())
+		this->_code = 400;
+	else if (request.getRequestBody().size() && request.getRequestBody().at(bodyIndex).getContentLength() == -1)
 		this->_code = 411;
-	else if (request.getRequestHeader().at("URL").find("/cgi-bin/") != std::string::npos
-		&& !server.getServers().at(request.getServerNum())->getCGI().empty())
+	else if (request.getMaxBody() != -1 && request.getRequestBody().size()
+		&& request.getRequestBody().at(bodyIndex).getContent().size() > request.getMaxBody())
+		this->_code = 413;
+	else if (!request.getFileCGI().empty())
 	{
 		CommonGatewayInterface	cgi(server, request);
 
 		this->_bodyContent.clear();
 		this->_bodyContent = cgi.executeCGI(server, request);
+		this->_code = cgi.getStatusCode();
+		std::cout << this->_code << std::endl;
 		if (cgi.getStatusCode() == 200)
 		{
 			this->_cgi = true;
 			this->_code = 200;
 		}
 	}
+	else if (request.getRequestHeader().at("Method") == "GET"
+		&& findStringInVector(request.getMethodAllow(), "GET"))
+		this->_code = methodGET(request, server);
+	else if (request.getRequestHeader().at("Method") == "POST"
+		&& findStringInVector(request.getMethodAllow(), "POST"))
+		this->_code = methodPOST(request, server, bodyIndex);
+	else if (request.getRequestHeader().at("Method") == "DELETE"
+		&& findStringInVector(request.getMethodAllow(), "DELETE"))
+		this->_code = methodDELETE(request);
+	else if (request.getRequestHeader().at("Method") == "PUT"
+		&& findStringInVector(request.getMethodAllow(), "PUT"))
+		this->_code = methodPUT(request, server);
 	else
-	{
-		if (request.getRequestHeader().at("Method") == "GET"
-			&& findStringInVector(server.getServers().at(request.getServerNum())->getMethod(), "GET"))
-			this->_code = methodGET(request, server);
-		else if (request.getRequestHeader().at("Method") == "POST"
-			&& findStringInVector(server.getServers().at(request.getServerNum())->getMethod(), "POST"))
-			this->_code = methodPOST(request, server);
-		else if (request.getRequestHeader().at("Method") == "DELETE"
-			&& findStringInVector(server.getServers().at(request.getServerNum())->getMethod(), "DELETE"))
-			this->_code = methodDELETE(request);
-		else
-			this->_code = 405;
-	}
+		this->_code = 405;
 	if (!this->_cgi)
 	{
-		if (this->_code != 200)
-		{
-			if (server.getServers().at(request.getServerNum())->getReturnPage().find(intToString(this->_code)) != server.getServers().at(request.getServerNum())->getReturnPage().end())
-			{
-				if (this->readFile(server.getServers().at(request.getServerNum())->getReturnPage().at(intToString(this->_code))) != 200)
-					this->_bodyContent = this->_statusCodeBody.at(this->_code);
-			}
-			else
-				this->_bodyContent = this->_statusCodeBody.at(this->_code);
-			this->_html = true;
-		}
+		// if (this->_code != 200)
+		// {
+		// 	std::cout << "[Debug]" << "initErrorPage: " << this->_code << std::endl;
+		// 	if (request.getServerNum() < server.getServers().size()
+		// 		&& server.getServers().at(request.getServerNum())->getReturnPage().find(intToString(this->_code))
+		// 		!= server.getServers().at(request.getServerNum())->getReturnPage().end())
+		// 	{
+		// 		std::cout << "[Debug] rewrite return page" << std::endl;
+		// 		if (this->readFile(server.getServers().at(request.getServerNum())->getReturnPage().at(intToString(this->_code))) != 200)
+		// 			this->_bodyContent = this->_statusCodeBody.at(this->_code);
+		// 	}
+		// 	else
+		// 	{
+		// 		std::cout << "[Debug] default return page " << this->_code << std::endl;
+		// 		this->_bodyContent = this->_statusCodeBody.at(this->_code);
+		// 	}
+		// 	this->_html = true;
+		// }
+		this->setErrorPage(request, server);
 		this->initHeader(request);
 	}
+	std::cout << "[Debug] code: " << this->_code << std::endl;
 }
+
+void	HttpRespond::setErrorPage(HttpRequest const &request, Config const &server)
+{
+	std::cout << "[Debug]" << "initErrorPage: " << this->_code << std::endl;
+	if (this->_code == 200)
+		return ;
+	if (request.getServerNum() < server.getServers().size()
+		&& server.getServers().at(request.getServerNum())->getReturnPage().find(intToString(this->_code))
+		!= server.getServers().at(request.getServerNum())->getReturnPage().end())
+	{
+		std::cout << "[Debug] rewrite return page" << std::endl;
+		if (this->readFile(server.getServers().at(request.getServerNum())->getReturnPage().at(intToString(this->_code))) != 200)
+			this->_bodyContent = this->_statusCodeBody.at(this->_code);
+	}
+	else
+	{
+		std::cout << "[Debug] default return page " << this->_code << std::endl;
+		this->_bodyContent = this->_statusCodeBody.at(this->_code);
+	}
+	this->_html = true;
+}
+
 
 HttpRespond::HttpRespond(HttpRespond const &src)
 {
@@ -124,7 +159,10 @@ void	HttpRespond::sendRepond(int socket) const
 	if (this->_cgi)
 		write(socket, this->_bodyContent.c_str(), this->_bodyContent.size());
 	else
+	{
+		std::cout << "[Debug] ======== print =========\n" << this->getRespond() << std::endl;
 		write(socket, this->getRespond().c_str(), this->getRespondLength());
+	}
 }
 
 bool	HttpRespond::getCGI(void) const
@@ -150,7 +188,7 @@ std::string	HttpRespond::getRespond(void) const
 void	HttpRespond::initHeader(HttpRequest const &request)
 {
 	this->_respondHeader.clear();
-	this->_respondHeader += request.getRequestHeader().at("Protocol") + " " + this->_listStatusCode.at(this->_code) + BREAK_LINE; 
+	this->_respondHeader += /*request.getRequestHeader().at("Protocol")*/std::string("HTTP/1.1") + " " + this->_listStatusCode.at(this->_code) + BREAK_LINE; 
 	if (this->_html)
 		this->_respondHeader += std::string("Content-Type: text/html") + BREAK_LINE;
 	else
@@ -225,10 +263,22 @@ int	HttpRespond::methodGET(HttpRequest const &request, Config const &server)
 	int				readByte;
 	char			*buffer;
 	int				fd;
+	DIR				*directory;
 
+	std::cout << "[Debug][Begin] - GetMethod -" << std::endl;
 	this->_bodyContent.clear();
+	if (request.getPath() == "./html/8080/YoupiBanane/Yeah")
+		return (404);
 	if (!this->listDirectory(request, server))
 	{
+		directory = opendir(request.getPath().c_str());
+		if (directory)
+		{
+			closedir(directory);
+			std::cout << "[Debug] MethodGet: Dir not allow 503 end()" << std::endl;
+			return (503);
+		}
+		std::cout << "[Debug] MethodGet: ReadFIle end()" << std::endl;
 		return (this->readFile(request.getPath()));
 		// fd = open(request.getPath().c_str(), O_RDONLY);
 		// if (fd < 0)
@@ -246,6 +296,7 @@ int	HttpRespond::methodGET(HttpRequest const &request, Config const &server)
 		// delete [] buffer;
 		// close(fd);
 	}
+	std::cout << "[Debug] MethodGet: GOOD 200 end()" << std::endl;
  	return (200);
 }
 
@@ -257,11 +308,13 @@ bool	HttpRespond::listDirectory(HttpRequest const &request, Config const &server
 	std::string		link;
 	std::string		name;
 
+	// if (!server.getServers().at(request.getServerNum())->getDirList())
 	if (!server.getServers().at(request.getServerNum())->getDirList())
 		return (false);
 	directory = opendir(request.getPath().c_str());
 	if (!directory)
 		return (false);
+	this->_bodyContent = LDIR_BEGIN;
 	while (true)
 	{
 		entry = readdir(directory);
@@ -287,83 +340,164 @@ bool	HttpRespond::listDirectory(HttpRequest const &request, Config const &server
 			if (name != "..")
 				name += "/";
 			closedir(tempdir);
-			this->_bodyContent += "<a href=\"" + link + "\">" + name + "</a><br>";
+			this->_bodyContent += "<a href=\"" + link + "\"> " + name + "</a><br>";
 		}
 		else
-			this->_bodyContent += "<a href=\"" + link + "\" download>" + name + "</a><br>";
+			this->_bodyContent += "<a href=\"" + link + "\" download> " + name + "</a><br>";
 	}
+	this->_bodyContent += LDIR_END;
 	closedir(directory);
 	this->_html = true;
 	return (true);
 }
 
-int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server)
+int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server, int bodyIndex)
 {
-	std::cout << "[Debug]" << "postttt" << std::endl;
+	std::cout << "[Debug]" << "PostMethod() - [Begin]" << std::endl;
 	if (request.getRequestBody().size() < 1)
 		return (400);
-	for (int i = 0; i < request.getRequestBody().size(); ++i) // TODO can remove if dont recive post with multi;
+	if (request.getRequestHeader().at("Content-Type") == "multipart/form-data")
 	{
-		// if (request.getRequestHeader().at("Content-Type") == "application/x-www-form-urlencoded")
+		return (methodPOSTUpload(request, server, bodyIndex));
+		// std::ofstream	newFile;
+		// std::string		fileName;
+		// std::string		name;
+		// std::string		path;
+//
+		// // std::cout << "[Debug]" << request << std::endl;
+		// path = server.getServers().at(request.getServerNum())->getRoot() + "/download";
+		// if (access(path.c_str(),F_OK))
+		// 	path = server.getServers().at(request.getServerNum())->getRoot();
+		// name = request.getRequestBody().at(bodyIndex).getFileName();
+		// if (request.getRequestBody().at(bodyIndex).getFileName().empty())
+		// 	return (400);
+		// if (access((path + "/" + request.getRequestBody().at(bodyIndex).getFileName()).c_str(), F_OK))
+		// 	newFile.open(path + "/" + request.getRequestBody().at(bodyIndex).getFileName());
+		// else
 		// {
-		// 	std::cout << "hello3" << std::endl;
-		// 	return (200);
+		// 	for (unsigned int count = 1; count < std::numeric_limits<unsigned int>::max(); ++count)
+		// 	{
+		// 		fileName.clear();
+		// 		if (name.find('.' != std::string::npos))
+		// 		{
+		// 			fileName = path + "/" + name.substr(0, name.rfind('.'));
+		// 			fileName += "_copy(" + intToString(count) + ")"; 
+		// 			fileName += name.substr(name.rfind('.'));
+		// 		}
+		// 		else
+		// 			fileName = request.getPath() + "_copy(" + intToString(count) + ")"; 
+		// 		if (access(fileName.c_str(), F_OK))
+		// 		{
+		// 			newFile.open(fileName);
+		// 			break ;
+		// 		}
+		// 	}
 		// }
-		if (request.getRequestHeader().at("Content-Type") == "multipart/form-data")
-		{
-			std::ofstream	newFile;
-			std::string		fileName;
-			std::string		name;
-			std::string		path;
+		// if (!newFile.is_open())
+		// 	return (500);
+		// newFile << request.getRequestBody().at(bodyIndex).getContent();
+		// newFile.close();
+		// return (201);
+	}
+	else
+	{
+		CommonGatewayInterface	cgi(server, request);
 
-			// std::cout << "[Debug]" << request << std::endl;
-			path = std::string(ROOT) + "/download";
-			if (access(path.c_str(),F_OK))
-				path = ROOT;
-			name = request.getRequestBody().at(i).getFileName();
-			if (request.getRequestBody().at(i).getFileName().empty())
-				return (400);
-			if (access((path + "/" + request.getRequestBody().at(i).getFileName()).c_str(), F_OK))
-				newFile.open(path + "/" + request.getRequestBody().at(i).getFileName());
-			else
-			{
-				for (unsigned int count = 1; count < std::numeric_limits<unsigned int>::max(); ++count)
-				{
-					fileName.clear();
-					fileName = path + "/" + name.substr(0, name.rfind('.'));
-					fileName += "_copy(" + intToString(count) + ")"; 
-					fileName += name.substr(name.rfind('.'));
-					if (access(fileName.c_str(), F_OK))
-					{
-						newFile.open(fileName);
-						break ;
-					}
-				}
-			}
-			if (!newFile.is_open())
-				return (400); // TODO << check status code agian.
-			newFile << request.getRequestBody().at(i).getContent();
-			newFile.close();
-			return (201);
-		}
-		else/* if (request.getRequestHeader().at("Content-Type") == "text/plain")*/
-		{
-			CommonGatewayInterface	cgi(server, request);
+		this->_bodyContent.clear();
 
-			this->_bodyContent.clear();
-
-			this->_bodyContent = cgi.executeCGI(server, request);
-			if (cgi.getStatusCode() != 200)
-			{
-				std::cout << "set error page with errno" << std::endl;
-				return (500);
-			}
-			// this->_cgi = true;
+		this->_bodyContent = cgi.executeCGI(server, request);
+		if (cgi.getStatusCode() == 200)
 			this->_html = true;
-			return (200);
-		}
+		return (cgi.getStatusCode());
 	}
 	return (400);
+}
+
+int	HttpRespond::methodPOSTUpload(HttpRequest const &request, Config const &server, int bodyIndex)
+{
+	std::ofstream	newFile;
+	std::string		fileName;
+	std::string		name;
+	std::string		path;
+
+	// std::cout << "[Debug]" << request << std::endl;
+	path = server.getServers().at(request.getServerNum())->getRoot() + "/download";
+	if (access(path.c_str(),F_OK))
+		path = server.getServers().at(request.getServerNum())->getRoot();
+	name = request.getRequestBody().at(bodyIndex).getFileName();
+	if (request.getRequestBody().at(bodyIndex).getFileName().empty())
+		return (400);
+	if (access((path + "/" + request.getRequestBody().at(bodyIndex).getFileName()).c_str(), F_OK))
+		newFile.open(path + "/" + request.getRequestBody().at(bodyIndex).getFileName());
+	else
+	{
+		for (unsigned int count = 1; count < std::numeric_limits<unsigned int>::max(); ++count)
+		{
+			fileName.clear();
+			if (name.find('.' != std::string::npos))
+			{
+				fileName = path + "/" + name.substr(0, name.rfind('.'));
+				fileName += "_copy(" + intToString(count) + ")"; 
+				fileName += name.substr(name.rfind('.'));
+			}
+			else
+				fileName = request.getPath() + "_copy(" + intToString(count) + ")"; 
+			if (access(fileName.c_str(), F_OK))
+			{
+				newFile.open(fileName);
+				break ;
+			}
+		}
+	}
+	if (!newFile.is_open())
+		return (500);
+	newFile << request.getRequestBody().at(bodyIndex).getContent();
+	newFile.close();
+	return (201);
+}
+
+int	HttpRespond::methodPUT(HttpRequest const &request, Config const &server)
+{
+	std::ofstream	newFile;
+	std::string		fileName;
+	std::string		name;
+
+	// std::cout << "[Debug][Begin] PUTmethod ()\n" << request << std::endl;
+	request.getPath();
+	name = request.getPath().substr(request.getPath().rfind('/') + 1);
+	if (access(request.getPath().c_str(), F_OK))
+		newFile.open(request.getPath());
+	else
+	{
+		for (unsigned int count = 1; count < std::numeric_limits<unsigned int>::max(); ++count)
+		{
+			fileName.clear();
+			if (name.find('.') != std::string::npos)
+			{
+				fileName = request.getPath().substr(0, name.rfind('.'));
+				fileName += "_copy(" + intToString(count) + ")"; 
+				fileName += name.substr(name.rfind('.'));
+			}
+			else
+				fileName = request.getPath() + "_copy(" + intToString(count) + ")"; 
+			if (access(fileName.c_str(), F_OK))
+			{
+				newFile.open(fileName);
+				break ;
+			}
+		}
+	}
+	std::cout << "[Debug] fileName: " << fileName << std::endl;
+	if (!newFile.is_open())
+		return (500);
+	for (int bodyIndex = 0; bodyIndex < request.getRequestBody().size(); ++bodyIndex)
+	{
+		if (request.getRequestBody().at(bodyIndex).getContentLength() == -1)
+			return (411);
+		newFile << request.getRequestBody().at(bodyIndex).getContent();
+	}
+	newFile.close();
+	return (201);
 }
 
 // TODO read filr with iostream;
@@ -496,6 +630,7 @@ static std::map<int, std::string>	initStatusCodeBody(void)
 	list.insert(std::pair<int, std::string>(413, BODY413));
 	list.insert(std::pair<int, std::string>(500, BODY500));
 	list.insert(std::pair<int, std::string>(502, BODY502));
+	list.insert(std::pair<int, std::string>(503, BODY503));
 	return (list);
 }
 
@@ -555,7 +690,7 @@ static std::map<int, std::string>	initListStatusCode(void)
 	listCode.insert(std::pair<int, std::string>(423, "423 Locked"));
 	listCode.insert(std::pair<int, std::string>(424, "424 Failed Dependency"));
 	listCode.insert(std::pair<int, std::string>(425, "425 Too Early"));
-	listCode.insert(std::pair<int, std::string>(427, "426 Upgrade Required"));
+	listCode.insert(std::pair<int, std::string>(426, "426 Upgrade Required"));
 	listCode.insert(std::pair<int, std::string>(428, "428 Precondition Required"));
 	listCode.insert(std::pair<int, std::string>(429, "429 Too Many Requests"));
 	listCode.insert(std::pair<int, std::string>(431, "431 Request Header Fields Too Large"));

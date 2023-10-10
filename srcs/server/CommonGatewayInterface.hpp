@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:31:38 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/24 21:01:00 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/09/30 07:27:28 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,10 @@ class CommonGatewayInterface
 		void				initScriptURI(Config const &server, HttpRequest const &request);
 		void				buildEnvironment(Config const &server, HttpRequest const &request);
 
-		std::string	getExecutorLanguage(Config const &server);
+		std::string	getExecutorLanguage(Config const &server, HttpRequest const &request);
 		char		**getExecutorPath(std::string const &exceLanguage);
-		int			pathExecutor(char **execPath, std::string requestBody);
+		int			pathExecutor(char **execPath, std::vector<RequestBody> const &requestBody, int i);
+		// int			pathExecutor(char **execPath, std::string requestBody);
 };
 
 std::ostream	&operator<<(std::ostream &out, CommonGatewayInterface const &rhs);

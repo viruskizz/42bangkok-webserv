@@ -33,7 +33,7 @@ typedef map<string, string> StringMap;
 
 // #include <iostream>
 # define BREAK_LINE (char *)"\r\n"
-# define READSIZE 100000
+# define READSIZE 111111111
 # define HTTP (char *)"HTTP/1.1 "
 # define ROOT (char *)"/Users/shivarakii/Documents/42_coding/webserv_42/html"
 // # define ROOT (char *)"/home/araiva/42bangkok/webserv/html"
@@ -83,4 +83,5 @@ std::string					stringTrim(std::string &string, std::string const &delimeters);
 std::vector<std::string>	split(std::string const &string, char delimeter);
 char						*stringTosChar(std::string const &string);
 char						**vectorStringToChar(std::vector<std::string> vector);
-bool	                    findStringInVector(std::vector<std::string> const & vector, std::string const &string);
+bool						findStringInVector(std::vector<std::string> const & vector, std::string const &string);
+int							hexadacimalToInt(const char *hexadecimal);

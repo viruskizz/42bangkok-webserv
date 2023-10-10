@@ -1,6 +1,21 @@
 #ifndef STATUSCODEBODY_HPP
 # define STATUSCODEBODY_HPP
 
+# define LDIR_BEGIN	"<!DOCTYPE html>\n" 																							\
+					"<html>\n" 																										\
+						"\t<head>\n"																								\
+							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<style>\n"																							\
+								"\t\t\thtml { color-scheme: light dark; }\n"														\
+								"\t\t\tbody { width: 35em; margin-left: 1.3%; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
+								"\t\t\ta { text-decoration: none;;}"																\
+							"\t\t</style>\n"																						\
+						"\t</head>\n"																								\
+						"\t<body>\n"
+
+# define LDIR_END		"\t</body>\n"																								\
+					"</html>\n"
+
 /*
 * marco of bodyContent for status code */
 # define BODY201	"<!DOCTYPE html>\n" 																							\
@@ -207,8 +222,24 @@
 						"\t</body>\n"																								\
 					"</html>\n"
 
-// 503 Service Unavailable"
-// 504 Gateway Timeout
+# define BODY503	"<!DOCTYPE html>\n" 																							\
+					"<html>\n" 																										\
+						"\t<head>\n"																								\
+							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<style>\n"																							\
+								"\t\t\thtml { color-scheme: light dark; }\n"														\
+								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
+							"\t\t</style>\n"																						\
+						"\t</head>\n"																								\
+						"\t<body>\n"																								\
+							"\t\t<center>\n"																						\
+								"\t\t\t<h1>503 Service Unavailable</h1><hr>\n"														\
+								"\t\t\t<p>webserv/</p>\n"																			\
+							"\t\t</center>\n"																						\
+						"\t</body>\n"																								\
+					"</html>\n"
+
+// 504 Gateway Timeout]
 
 #endif
 

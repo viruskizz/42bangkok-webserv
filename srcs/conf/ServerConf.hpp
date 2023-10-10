@@ -18,7 +18,7 @@ private:
 	string m_listen;
 	string m_root;
 	string m_index;
-	string m_cgi;
+	// string m_cgi;
 	bool m_dirList;
 	int m_clientSize;
 	// struct timeval m_timeOut;
@@ -34,7 +34,7 @@ public:
 	ServerConf(Config *, std::ifstream &);
 	~ServerConf(void);
 
-	static const char* LOCATION_KEYS[2];
+	static const char* LOCATION_KEYS[7];
 
 	string const & getServerName(void) const;
 	string const & getListen(void) const;
@@ -46,7 +46,7 @@ public:
 	bool const getDirList(void) const;
 	int const getClientSize(void) const;
 	map<string, string> const & getReturnPage(void) const;
-	string const & getCGI(void) const;
+	// string const & getCGI(void) const;
 
 	class InvalidConfigException: public std::exception {
 		public:
@@ -56,6 +56,8 @@ public:
 		public:
 			virtual const char* what() const throw() { return "Duplicated server config key"; }
 	};
+
+	void	validate(void) const;
 };
 
 std::ostream & operator << (std::ostream &, ServerConf const &);

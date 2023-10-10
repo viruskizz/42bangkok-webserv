@@ -70,38 +70,38 @@
 				</tr>
 				<tr>
 					<!-- * index_page         -> show 8081 page -->
-					<td><b><a href="localhost:8081">index.html</a></b></td>
+					<td><b><a href="localhost:8081" style="color: rgb(74, 62, 189);">index.html</a></b></td>
 					<td style="text-align: left;">[server_name]:[another_port]/</td>
 					<td>work</td>
 				</tr>
 				<tr>
 					<!-- *-> post-method    -> not allow -->
-					<td><b><a href="localhost:8081/postMethod.html">post_method</a></b></td>
+					<td><b><a href="localhost:8081/postMethod.html" style="color: rgb(74, 62, 189);">post_method</a></b></td>
 					<td style="text-align: left;">[server_name]:[another_port]/post_method.html</td>
 					<td>405</td>
 				</tr>
 				<tr>
 					<!-- *-> list_directory == work -->
-					<td><b><a href="localhost:8081//">list_directory</a></b></td>
+					<td style="color: rgb(74, 62, 189);"><b>list_directory</a></b></td>
 					<td style="text-align: left;">[server_name]:[another_port]//</td>
 					<td>404</td>
 				</tr>
 				<tr>
 					<!-- *-> file_uploading -> with client_size
 					* < client_size == work \ > client_size != work -->
-					<td><b><a href="localhost:8081/uploadFile.html">file_uploading</a></b></td>
+					<td><b><a href="localhost:8081/uploadFile.html" style="color: rgb(74, 62, 189);">file_uploading</a></b></td>
 					<td style="text-align: left;">[server_name]:[another_port]/upload.html</td>
 					<td>405</td>
 				</tr>
 				<tr>
 					<!-- *-> cgi -->
-					<td><b><a href="localhost:8081/cgi_bin/hello.py">CGI_python</a></b></td>
+					<td style="color: rgb(74, 62, 189);"><b>CGI_python</a></b></td>
 					<td style="text-align: left;">[server_name]:[port]/cgi_bin/hello.py</td>
 					<td>404</td>
 				</tr>
 				<tr>
 					<!-- *-> redirect_path -->
-					<td><b><a href="localhost:8081/redirect/redirect.html">redirect_path</a></b></td>
+					<td style="color: rgb(74, 62, 189);"><b>redirect_path</a></b></td>
 					<td style="text-align: left;">[server_name]:[port]/redirect/redirect.html</td>
 					<td>404</td>
 				</tr>

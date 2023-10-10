@@ -11,9 +11,70 @@ ServerConf::ServerConf(Config *conf, std::ifstream & ifile): m_ifile(ifile), m_s
 	m_method = split("GET,POST,DELETE", ',');
 	m_dirList = true;
 	m_clientSize = -1;
-	// m_timeOut.tv_sec = 10;
-	// m_timeOut.tv_usec = 0;
 	lineByLine(m_ifile, &ServerConf::setServer);
+	this->validate();
+}
+
+void	ServerConf::validate(void) const
+{
+	vector<StringMap>::const_iterator	location;
+	StringMap::const_iterator			locationMap;
+	bool								isFound;
+
+	std::cout << "[Debug][Begin] validate ()" << std::endl;
+	if (this->m_serverName.empty())
+		throw "webserv : config-ERROR: The server-config need server name.";
+	if (this->m_listen.empty())
+		throw "webserv : config-ERROR: The server need listen port value.";
+	else
+	{
+		for (int i = 0; i < this->m_listen.length(); ++i)
+		{
+			if (!isdigit(this->m_listen.at(i)))
+				throw "webserv : config-ERROR: Invalid listen port value.";
+		}
+	}
+	if (this->m_root.empty())
+		throw "webserv : config-ERROR: the server need Root_Directory.";
+	if (this->m_index.empty())
+		throw "webserv : config-ERROR: the server need Index page.";
+	if (!this->m_locations.empty())
+	{
+		location = this->m_locations.begin();
+		while (location != this->m_locations.end())
+		{
+			if (location->find("path") != location->end() && location->find("root") != location->end()
+				|| location->find("cgi_file") != location->end() && location->find("cgi_pass") != location->end())
+			{
+				if (location->size() < 2 && location->size() > 4)
+				{
+					std::cout << "[Debug] locationSize: " << location->size() << std::endl; 
+					throw "webserv : config-ERROR: Invalid size of Location.";
+				}
+				locationMap = location->begin();
+				while(locationMap != location->end())
+				{
+					isFound = false;
+					for (int i = 0; LOCATION_KEYS[i]; ++i)
+					{
+						if (!strncmp(locationMap->first.c_str(), LOCATION_KEYS[i], locationMap->first.length()))
+						{
+							isFound = true;
+							std::cout << "[Debug] " << locationMap->first << std::endl;
+							break ;
+						}
+					}
+					if (!isFound)
+						throw "webserv : config-ERROR: Invalid key of Location.";
+					++locationMap;
+				}
+			}
+			else
+				throw "webserv : config-ERROR: Invalid Key of Location.";
+			++location;
+		}
+	}
+	std::cout << "[Debug][End] validate ()" << std::endl;
 }
 
 ServerConf::~ServerConf() {
@@ -59,10 +120,10 @@ map<string, string> const & ServerConf::getReturnPage(void) const
 	return m_returnPage;
 }
 
-string const & ServerConf::getCGI(void) const
-{
-	return m_cgi;
-}
+// string const & ServerConf::getCGI(void) const
+// {
+// 	return m_cgi;
+// }
 
 /************************************************
  *           Specific member function           *
@@ -71,33 +132,31 @@ void ServerConf::setServer(string const & key, string const & val) {
 	if (key == "server_name") {
 		m_serverName = val;
 	}
-	if (key == "listen") {
+	else if (key == "listen") {
 		m_listen = val;
 	}
-	if (key == "root") {
+	else if (key == "root") {
 		m_root = val;
 	}
-	if (key == "methods"){
+	else if (key == "method_allow"){
 		this->m_method.clear();
 		this->m_method = split(val, ',');
 		for (vector<string>::iterator it = this->m_method.begin(); it != this->m_method.end(); ++it)
 		{
 			for (int i = 0; i < it->length(); ++i)
 				it->at(i) = toupper(it->at(i));
-			if (*it != "GET" || *it != "POST" || *it != "DELETE")
+			if (!strcmp(it->c_str(), "GET") && !strcmp(it->c_str(), "POST") && !strcmp(it->c_str(), "DELETE"))
 				throw "webserv: config-ERROR: Invalid Medthod value.";
 		}
 	}
-	if (key == "directory_list")
+	else if (key == "directory_list")
 	{
 		if (val != "enable" && val != "disable")
 			throw "webserv: config-ERROR: Invalid Directory_List value.";
 		else if (val == "disable")
 			m_dirList = false;
 	}
-	if (key == "cgi")
-		m_cgi = val;
-	if (key == "return")
+	else if (key == "return")
 	{
 		vector<string>	splited = split(val, ':');
 		for (int i = 0; i < splited.at(0).length(); ++i)
@@ -110,7 +169,7 @@ void ServerConf::setServer(string const & key, string const & val) {
 		else
 			throw "webserv: config-ERROR: Invalid Return syntex.";
 	}
-	if (key == "client_size")
+	else if (key == "client_max_size")
 	{
 		for (int i = 0; i < val.size(); ++i)
 		{
@@ -139,17 +198,23 @@ void ServerConf::setServer(string const & key, string const & val) {
 	// 	else
 	// 		m_timeOut.tv_usec = stringToint(splited.at(1));
 	// }
-	if (key == "location" && val != "{") { throw "Invalid Key Value string"; }
-	if (key == "location") {
+	else if (key == "location" && val != "{") { throw "Invalid Key Value string"; }
+	else if (key == "location") {
 		map<string, string> mapStr = lineByLine(m_ifile, NULL);
 		m_locations.push_back(mapStrLocation(mapStr));
+	}
+	else
+	{
+		std::cout << "[Debug] setserver () : Invalid key [" << key << "]" << std::endl;
+		throw "webserv: config-ERROR: Invalid key";
 	}
 }
 
 StringMap ServerConf::mapStrLocation(map<string, string> mapStr) {
 	map<string, string> locate;
 	for(map<string, string>::const_iterator it = mapStr.begin(); it != mapStr.end(); ++it) {
-		for(int i = 0; i < sizeof(ServerConf::LOCATION_KEYS) / sizeof(ServerConf::LOCATION_KEYS[0]); i++) {
+		// for(int i = 0; i < sizeof(ServerConf::LOCATION_KEYS) / sizeof(ServerConf::LOCATION_KEYS[0]); i++) {
+		for(int i = 0; LOCATION_KEYS[i]; i++) {
 			if (string(ServerConf::LOCATION_KEYS[i]) == string(it->first)) {
 				locate[it->first] = it->second;
 			}
@@ -160,9 +225,14 @@ StringMap ServerConf::mapStrLocation(map<string, string> mapStr) {
 
 StringMap ServerConf::lineByLine(std::ifstream & ifile, void (ServerConf::*func)(string const & key, string const & val)){
 	string line;
+	string lineTest;
 	map<string, string> mapStr;
 	while (getline(ifile, line)) {
-		if (!line.empty() && line.at(0) == '#') {
+		// std::cout << "[Debug] line: |" << line << "|" << std::endl;
+		// line = stringTrim(line, " \t\r\n");
+		// if (!line.empty() && line.at(0) == '#') {
+		lineTest = stringTrim(line, " \t\r\n");
+		if (!lineTest.empty() && lineTest.at(0) == '#') {
 			continue;
 		}
 		vector<string> value = StringUtil::split(line, " \t");
@@ -184,6 +254,11 @@ StringMap ServerConf::lineByLine(std::ifstream & ifile, void (ServerConf::*func)
 const char* ServerConf::LOCATION_KEYS[] = {
 	"path",
 	"root",
+	"cgi_file",
+	"cgi_pass",
+	"client_max_size",
+	"method_allow",
+	NULL
 };
 
 std::ostream & operator << (std::ostream & o, ServerConf const & rhs) {
