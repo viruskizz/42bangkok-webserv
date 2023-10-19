@@ -161,7 +161,8 @@ void	HttpRequest::requestPaser(void)
 		else if (lineSplited[0] == "Origin" || lineSplited[0] == "Host" || lineSplited[0] == "Referer")
 		{
 			lineSplited = lineSplited = split(stringTrim((*it), " \t\r\n\v\f"), ' ');
-			lineSplited[0].pop_back();
+			// lineSplited[0].pop_back();
+			lineSplited[0].erase(lineSplited[0].size() - 1);
 			this->_requestHeader.insert(std::pair<std::string, std::string>(lineSplited[0], lineSplited[1]));
 		}
 		else if (!lineSplited.size())

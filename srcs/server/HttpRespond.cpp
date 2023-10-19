@@ -427,8 +427,10 @@ int	HttpRespond::methodPOSTUpload(HttpRequest const &request, Config const &serv
 	name = request.getRequestBody().at(bodyIndex).getFileName();
 	if (request.getRequestBody().at(bodyIndex).getFileName().empty())
 		return (400);
-	if (access((path + "/" + request.getRequestBody().at(bodyIndex).getFileName()).c_str(), F_OK))
-		newFile.open(path + "/" + request.getRequestBody().at(bodyIndex).getFileName());
+	if (access((path + "/" + request.getRequestBody().at(bodyIndex).getFileName()).c_str(), F_OK)) {
+		std::string fullpath = path + "/" + request.getRequestBody().at(bodyIndex).getFileName();
+		newFile.open(fullpath.c_str());
+	}
 	else
 	{
 		for (unsigned int count = 1; count < std::numeric_limits<unsigned int>::max(); ++count)
@@ -444,7 +446,7 @@ int	HttpRespond::methodPOSTUpload(HttpRequest const &request, Config const &serv
 				fileName = request.getPath() + "_copy(" + intToString(count) + ")"; 
 			if (access(fileName.c_str(), F_OK))
 			{
-				newFile.open(fileName);
+				newFile.open(fileName.c_str());
 				break ;
 			}
 		}
@@ -466,7 +468,7 @@ int	HttpRespond::methodPUT(HttpRequest const &request, Config const &server)
 	request.getPath();
 	name = request.getPath().substr(request.getPath().rfind('/') + 1);
 	if (access(request.getPath().c_str(), F_OK))
-		newFile.open(request.getPath());
+		newFile.open(request.getPath().c_str());
 	else
 	{
 		for (unsigned int count = 1; count < std::numeric_limits<unsigned int>::max(); ++count)
@@ -482,7 +484,7 @@ int	HttpRespond::methodPUT(HttpRequest const &request, Config const &server)
 				fileName = request.getPath() + "_copy(" + intToString(count) + ")"; 
 			if (access(fileName.c_str(), F_OK))
 			{
-				newFile.open(fileName);
+				newFile.open(fileName.c_str());
 				break ;
 			}
 		}

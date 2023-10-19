@@ -161,7 +161,8 @@ void ServerConf::setServer(string const & key, string const & val) {
 		vector<string>	splited = split(val, ':');
 		for (int i = 0; i < splited.at(0).length(); ++i)
 		{
-			if (!isnumber(splited.at(0).at(i)))
+			if (!isdigit(splited.at(0).at(i)))
+			// if (!isnumber(splited.at(0).at(i)))
 				throw "webserv: config-ERROR: Invalid Return values.";
 		}
 		if (splited.size() == 2)

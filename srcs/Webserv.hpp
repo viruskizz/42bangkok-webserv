@@ -21,6 +21,9 @@
 # include <sys/signal.h>
 # include <netinet/in.h>
 # include "./utils/StringUtil.hpp"
+# include <ctype.h>
+# include <stddef.h>
+# include <limits>
 
 using std::string;
 using std::vector;
