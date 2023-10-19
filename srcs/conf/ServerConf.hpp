@@ -43,8 +43,8 @@ public:
 	vector<string> const & getMethod(void) const;
 	vector<StringMap> const & getLocations(void) const;
 
-	bool const getDirList(void) const;
-	int const getClientSize(void) const;
+	bool getDirList(void) const;
+	int getClientSize(void) const;
 	map<string, string> const & getReturnPage(void) const;
 	// string const & getCGI(void) const;
 

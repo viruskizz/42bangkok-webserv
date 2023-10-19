@@ -28,7 +28,7 @@ void Server::init(Config const &configFile)
 	int errorNumber;
 	int	optionInput;
 
-	for (int index = 0; index < configFile.getServers().size(); ++index)
+	for (size_t index = 0; index < configFile.getServers().size(); ++index)
 	{
 		memset(&m_hint, '\0', sizeof(struct addrinfo));
 		m_hint.ai_family = AF_UNSPEC; // * allow ip address AF_INET ipv4, AF_INET6 ipv6 ;
@@ -80,7 +80,7 @@ void Server::start(Config const &configFile)
 	timeOut.tv_sec = 1;
 	timeOut.tv_usec = 0;
 	FD_ZERO(&currentSocket);
-	for (int i = 0; i < m_serverSockets.size(); ++i)
+	for (size_t i = 0; i < m_serverSockets.size(); ++i)
 	{
 		FD_SET(m_serverSockets[i], &currentSocket);
 	}
@@ -98,7 +98,7 @@ void Server::start(Config const &configFile)
 			if (FD_ISSET(socket, &readySocket))
 			{
 				bool isFound = false;
-				for (int j = 0; j < m_serverSockets.size(); ++j)
+				for (size_t j = 0; j < m_serverSockets.size(); ++j)
 				{
 					int jsocket = m_serverSockets[j];
 					if (jsocket == socket)
@@ -121,13 +121,12 @@ void Server::start(Config const &configFile)
 					// std::cout << "********** Sending Respond to Client **********" << std::endl;
 					fcntl(socket, F_SETFL, O_NONBLOCK);
 					HttpRequest request(socket, configFile);
-					// std::cout << request << std::endl;
 					if (request.getRequestHeader().size())
 					{
 						if (request.getRequestBody().size() && request.getFileCGI().empty() && request.getRequestHeader().at("Method") != "PUT")
 						{
 							std::cout << "[Debug] ooooo" << std::endl;
-							for (int count = 0; count < request.getRequestBody().size(); ++count)
+							for (size_t count = 0; count < request.getRequestBody().size(); ++count)
 							{
 								HttpRespond respond(socket, request, configFile, count);
 								respond.sendRepond(socket);
@@ -141,7 +140,6 @@ void Server::start(Config const &configFile)
 						}
 						
 					}
-					// std::cout << respond << std::endl;
 					close(socket);
 					FD_CLR(socket, &currentSocket);
 					// std::cout << "********** Sent Respond to Client **********" << std::endl;

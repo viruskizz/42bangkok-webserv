@@ -43,6 +43,7 @@ class HttpRequest
 		int											getMaxBody(void) const;
 		void										setPath(std::string &path);
 
+	
 		class CannotReadSocketException : public std::exception
 		{
 			public:
@@ -59,12 +60,12 @@ class HttpRequest
 		};
 
 	private:
-		std::string							_path;
 		std::string							_raw;
+		std::string							_path;
+		std::string							_fileCGI;
+		int									_serverNum;
 		std::map<std::string, std::string>	_requestHeader;
 		std::vector<RequestBody>			_requestBody;
-		int									_serverNum;
-		std::string							_fileCGI;
 		int									_maxBody;
 		std::vector<std::string>			_methodAllow;
 		bool								_badRequest;

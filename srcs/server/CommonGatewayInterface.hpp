@@ -51,18 +51,15 @@ class CommonGatewayInterface
 		std::string					_serverName;
 		std::vector<std::string>	_environment;
 		int							_cgiStatus;
-
 		Config						_server;
 
-		// static std::map<std::string, std::string> const	_fileType;
 
-		void				initScriptURI(Config const &server, HttpRequest const &request);
-		void				buildEnvironment(Config const &server, HttpRequest const &request);
+		void		initScriptURI(Config const &server, HttpRequest const &request);
+		void		buildEnvironment(Config const &server, HttpRequest const &request);
 
 		std::string	getExecutorLanguage(Config const &server, HttpRequest const &request);
 		char		**getExecutorPath(std::string const &exceLanguage);
 		int			pathExecutor(char **execPath, std::vector<RequestBody> const &requestBody, int i);
-		// int			pathExecutor(char **execPath, std::string requestBody);
 };
 
 std::ostream	&operator<<(std::ostream &out, CommonGatewayInterface const &rhs);

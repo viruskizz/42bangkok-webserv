@@ -14,5 +14,3 @@ public:
 
 	static std::string space(size_t);
 };
-
-static int	findStrChar(std::string const & str, char del);

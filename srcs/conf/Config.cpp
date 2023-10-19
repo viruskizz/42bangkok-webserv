@@ -106,7 +106,7 @@ void Config::debug(Config &config) {
 	std::cout << "servers: " << config.m_servers.size() << std::endl;
 	if (config.m_servers.size() == 0) { return; }
 	std::cout << "[" << std::endl;
-	for(int i = 0; i < config.m_servers.size(); i++) {
+	for(size_t i = 0; i < config.m_servers.size(); i++) {
 		ServerConf *serv = config.m_servers[i];
 		std::cout << StringUtil::space(2) << "{" << std::endl;
 		std::cout << StringUtil::space(4) << "serverName: " << serv->getServerName() << std::endl;
@@ -135,7 +135,7 @@ void Config::debug(Config &config) {
 void Config::printConfig(void) const
 {
 	std::cout << "================= severSize: [" << this->m_servers.size()  << "] =================" << std::endl;
-	for (int i = 0; i < this->m_servers.size(); ++i)
+	for (size_t i = 0; i < this->m_servers.size(); ++i)
 	{
 		std::cout << "• server        : [" << i << "]" << std::endl;
 		std::cout << "• serverName    : " << this->m_servers.at(i)->getServerName() << std::endl;
@@ -144,10 +144,6 @@ void Config::printConfig(void) const
 		std::cout << "• index         : " << this->m_servers.at(i)->getIndex() << std::endl;
 		std::cout << "• directoryList : " << this->m_servers.at(i)->getDirList() << std::endl;
 		std::cout << "• clientSize    : " << this->m_servers.at(i)->getClientSize() << std::endl;
-		// if (this->m_servers.at(i)->getCGI().empty())
-		// 	std::cout << "• cgi           : none" << std::endl;
-		// else
-		// 	std::cout << "• cgi           : " << this->m_servers.at(i)->getCGI() << std::endl;
 		std::cout << "• method        : ";
 		for (vector<string>::const_iterator it = this->m_servers.at(i)->getMethod().begin();
 			it != this->m_servers.at(i)->getMethod().end(); ++it)

@@ -1,7 +1,7 @@
 NAME = webserv
 CXX = c++ -g
-# CPPFLAGS = -Wall -Werror -Wextra -std=c++98
-CPPFLAGS = -std=c++98
+CPPFLAGS = -Wall -Werror -Wextra -std=c++98
+# CPPFLAGS = -std=c++98
 
 YELLOW ="\033[0;33m"
 RESET = "\033[0m"

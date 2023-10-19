@@ -28,7 +28,7 @@ void	ServerConf::validate(void) const
 		throw "webserv : config-ERROR: The server need listen port value.";
 	else
 	{
-		for (int i = 0; i < this->m_listen.length(); ++i)
+		for (size_t i = 0; i < this->m_listen.length(); ++i)
 		{
 			if (!isdigit(this->m_listen.at(i)))
 				throw "webserv : config-ERROR: Invalid listen port value.";
@@ -43,8 +43,8 @@ void	ServerConf::validate(void) const
 		location = this->m_locations.begin();
 		while (location != this->m_locations.end())
 		{
-			if (location->find("path") != location->end() && location->find("root") != location->end()
-				|| location->find("cgi_file") != location->end() && location->find("cgi_pass") != location->end())
+			if ((location->find("path") != location->end() && location->find("root") != location->end())
+				|| (location->find("cgi_file") != location->end() && location->find("cgi_pass") != location->end()))
 			{
 				if (location->size() < 2 && location->size() > 4)
 				{
@@ -105,12 +105,12 @@ vector<StringMap> const & ServerConf::getLocations(void) const {
 	return m_locations;
 }
 
-bool const ServerConf::getDirList(void) const
+bool ServerConf::getDirList(void) const
 {
 	return m_dirList;
 }
 
-int const ServerConf::getClientSize(void) const
+int ServerConf::getClientSize(void) const
 {
 	return m_clientSize;
 }
@@ -119,11 +119,6 @@ map<string, string> const & ServerConf::getReturnPage(void) const
 {
 	return m_returnPage;
 }
-
-// string const & ServerConf::getCGI(void) const
-// {
-// 	return m_cgi;
-// }
 
 /************************************************
  *           Specific member function           *
@@ -143,7 +138,7 @@ void ServerConf::setServer(string const & key, string const & val) {
 		this->m_method = split(val, ',');
 		for (vector<string>::iterator it = this->m_method.begin(); it != this->m_method.end(); ++it)
 		{
-			for (int i = 0; i < it->length(); ++i)
+			for (size_t i = 0; i < it->length(); ++i)
 				it->at(i) = toupper(it->at(i));
 			if (!strcmp(it->c_str(), "GET") && !strcmp(it->c_str(), "POST") && !strcmp(it->c_str(), "DELETE"))
 				throw "webserv: config-ERROR: Invalid Medthod value.";
@@ -159,7 +154,7 @@ void ServerConf::setServer(string const & key, string const & val) {
 	else if (key == "return")
 	{
 		vector<string>	splited = split(val, ':');
-		for (int i = 0; i < splited.at(0).length(); ++i)
+		for (size_t i = 0; i < splited.at(0).length(); ++i)
 		{
 			if (!isdigit(splited.at(0).at(i)))
 			// if (!isnumber(splited.at(0).at(i)))
@@ -172,33 +167,13 @@ void ServerConf::setServer(string const & key, string const & val) {
 	}
 	else if (key == "client_max_size")
 	{
-		for (int i = 0; i < val.size(); ++i)
+		for (size_t i = 0; i < val.size(); ++i)
 		{
 			if (!isdigit(val.at(i)))
 				throw "webserv: config-ERROR: Invalid Client_Size value.";
 		}
 		m_clientSize = stringToint(val);
 	}
-	// * [MARK] set time out from congif
-	// if (key == "timeout")
-	// {
-	// 	bool precision = false;
-	// 	for (int i = 0; i < val.size(); ++i)
-	// 	{
-	// 		if (!precision && val.at(i) == '.' && i != 0 && i != val.size() - 1)
-	// 			precision = true;
-	// 		else if (isdigit(val.at(i)))
-	// 			continue ;
-	// 		else
-	// 			throw "webserv: config-ERROR: Invalid Time_Out value.";
-	// 	}
-	// 	vector<string> splited = split(val, '.');
-	// 	m_timeOut.tv_sec = stringToint(splited.at(0));
-	// 	if (stringToint(splited.at(1)) > 999999)
-	// 		m_timeOut.tv_usec = 999999;
-	// 	else
-	// 		m_timeOut.tv_usec = stringToint(splited.at(1));
-	// }
 	else if (key == "location" && val != "{") { throw "Invalid Key Value string"; }
 	else if (key == "location") {
 		map<string, string> mapStr = lineByLine(m_ifile, NULL);
@@ -214,8 +189,7 @@ void ServerConf::setServer(string const & key, string const & val) {
 StringMap ServerConf::mapStrLocation(map<string, string> mapStr) {
 	map<string, string> locate;
 	for(map<string, string>::const_iterator it = mapStr.begin(); it != mapStr.end(); ++it) {
-		// for(int i = 0; i < sizeof(ServerConf::LOCATION_KEYS) / sizeof(ServerConf::LOCATION_KEYS[0]); i++) {
-		for(int i = 0; LOCATION_KEYS[i]; i++) {
+		for(size_t i = 0; LOCATION_KEYS[i]; i++) {
 			if (string(ServerConf::LOCATION_KEYS[i]) == string(it->first)) {
 				locate[it->first] = it->second;
 			}
@@ -229,9 +203,6 @@ StringMap ServerConf::lineByLine(std::ifstream & ifile, void (ServerConf::*func)
 	string lineTest;
 	map<string, string> mapStr;
 	while (getline(ifile, line)) {
-		// std::cout << "[Debug] line: |" << line << "|" << std::endl;
-		// line = stringTrim(line, " \t\r\n");
-		// if (!line.empty() && line.at(0) == '#') {
 		lineTest = stringTrim(line, " \t\r\n");
 		if (!lineTest.empty() && lineTest.at(0) == '#') {
 			continue;
