@@ -2,11 +2,12 @@
 # include "../Webserv.hpp"
 # include "ServerConf.hpp"
 
-// using std::string;
-// using std::vector;
-// using std::map;
+using std::string;
+using std::vector;
+using std::map;
 
-typedef StringUtil SUtil;
+typedef map<string, string> StringMap;
+// typedef StringUtil SUtil;
 
 class ServerConf;
 
@@ -16,6 +17,7 @@ private:
 
 	void	setFiledata(void);
 	void	setConfig(string &, string &);
+	
 
 	string m_filename;
 	string m_filedata;
@@ -43,6 +45,7 @@ public:
 	string const & getIndex(void) const;
 	vector<ServerConf*> const &getServers(void) const;
 
+	void printConfig(void) const;
 	class FileNotFoundException: public std::exception {
 		public:
 			virtual const char* what() const throw() { return "File not found or not enough permission to open"; }

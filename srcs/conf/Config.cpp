@@ -14,6 +14,8 @@ Config::Config(std::string const & filename) : m_filename(filename), m_filedata(
 	setFiledata();
 	m_ifile.open(m_filename.c_str());
 	lineByLine(m_ifile, &Config::setConfig);
+
+	// this->printConfig();
 }
 
 Config::~Config() {
@@ -106,28 +108,68 @@ void Config::debug(Config &config) {
 	std::cout << "[" << std::endl;
 	for(int i = 0; i < config.m_servers.size(); i++) {
 		ServerConf *serv = config.m_servers[i];
-		std::cout << SUtil::space(2) << "{" << std::endl;
-		std::cout << SUtil::space(4) << "serverName: " << serv->getServerName() << std::endl;
-		std::cout << SUtil::space(4) << "listen: " << serv->getListen() << std::endl;
-		std::cout << SUtil::space(4) << "root: " << serv->getRoot() << std::endl;
-		std::cout << SUtil::space(4) << "index: " << serv->getIndex() << std::endl;
+		std::cout << StringUtil::space(2) << "{" << std::endl;
+		std::cout << StringUtil::space(4) << "serverName: " << serv->getServerName() << std::endl;
+		std::cout << StringUtil::space(4) << "listen: " << serv->getListen() << std::endl;
+		std::cout << StringUtil::space(4) << "root: " << serv->getRoot() << std::endl;
+		std::cout << StringUtil::space(4) << "index: " << serv->getIndex() << std::endl;
 		vector<StringMap> locations = serv->getLocations();
 		if (locations.size() > 0) {
-			std::cout << SUtil::space(4) << "locations: [" << std::endl;
+			std::cout << StringUtil::space(4) << "locations: [" << std::endl;
 			for (vector<StringMap>::iterator itLocate = locations.begin(); itLocate < locations.end(); itLocate++) {
 				StringMap mapLocate = *itLocate;
-				std::cout << SUtil::space(6) << "{" << std::endl;
+				std::cout << StringUtil::space(6) << "{" << std::endl;
 				for(map<string, string>::const_iterator it = mapLocate.begin(); it != mapLocate.end(); ++it) {
-					std::cout << SUtil::space(8);
+					std::cout << StringUtil::space(8);
 					std::cout << it->first << ": " << it->second << std::endl;
 				}
-				std::cout << SUtil::space(6) << ((itLocate + 1 < locations.end()) ? "}," : "}") << std::endl;
+				std::cout << StringUtil::space(6) << ((itLocate + 1 < locations.end()) ? "}," : "}") << std::endl;
 			}
-			std::cout << SUtil::space(4) << "]" << std::endl;
+			std::cout << StringUtil::space(4) << "]" << std::endl;
 		}
-		std::cout << SUtil::space(2) << ((i < config.m_servers.size() - 1) ? "}," : "}") << std::endl;
+		std::cout << StringUtil::space(2) << ((i < config.m_servers.size() - 1) ? "}," : "}") << std::endl;
 	}
 	std::cout << "]" << std::endl;
+}
+
+void Config::printConfig(void) const
+{
+	std::cout << "================= severSize: [" << this->m_servers.size()  << "] =================" << std::endl;
+	for (int i = 0; i < this->m_servers.size(); ++i)
+	{
+		std::cout << "• server        : [" << i << "]" << std::endl;
+		std::cout << "• serverName    : " << this->m_servers.at(i)->getServerName() << std::endl;
+		std::cout << "• listen        : " << this->m_servers.at(i)->getListen() << std::endl;
+		std::cout << "• root          : " << this->m_servers.at(i)->getRoot() << std::endl;
+		std::cout << "• index         : " << this->m_servers.at(i)->getIndex() << std::endl;
+		std::cout << "• directoryList : " << this->m_servers.at(i)->getDirList() << std::endl;
+		std::cout << "• clientSize    : " << this->m_servers.at(i)->getClientSize() << std::endl;
+		// if (this->m_servers.at(i)->getCGI().empty())
+		// 	std::cout << "• cgi           : none" << std::endl;
+		// else
+		// 	std::cout << "• cgi           : " << this->m_servers.at(i)->getCGI() << std::endl;
+		std::cout << "• method        : ";
+		for (vector<string>::const_iterator it = this->m_servers.at(i)->getMethod().begin();
+			it != this->m_servers.at(i)->getMethod().end(); ++it)
+			std::cout << *it << ",";
+		std::cout << "\n• returnPageSize: " << this->m_servers.at(i)->getReturnPage().size() << std::endl;
+		if (this->m_servers.at(i)->getReturnPage().size())
+			std::cout << "------------ return ------------" << std::endl;
+		for (map<string, string>::const_iterator it = this->m_servers.at(i)->getReturnPage().begin();
+			this->m_servers.at(i)->getReturnPage().size() && it != this->m_servers.at(i)->getReturnPage().end(); ++it)
+			std::cout << "-> " << it->first << " " << it->second << std::endl;
+		if (this->m_servers.at(i)->getReturnPage().size())
+			std::cout << "--------------------------------" << std::endl;
+		std::cout << "• locationSize  : " << this->m_servers.at(i)->getLocations().size() << std::endl;
+ 		for (vector<StringMap>::const_iterator it = this->m_servers.at(i)->getLocations().begin();
+			it != this->m_servers.at(i)->getLocations().end(); ++it)
+		{
+			std::cout << "----------- location -----------" << std::endl;
+			for (map<string, string>::const_iterator iter = it->begin(); iter != it->end(); ++iter)
+				std::cout << "-> " << iter->first << ": " << iter->second << std::endl;
+		}
+		std::cout << "===================== end =======================" << std::endl;
+	}
 }
 
 std::ostream & operator << (std::ostream & o, Config const & rhs) {

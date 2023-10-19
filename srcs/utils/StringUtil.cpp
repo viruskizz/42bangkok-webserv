@@ -41,7 +41,8 @@ std::vector<std::string> StringUtil::split(std::string const &str, std::string c
 		word.clear();
 		while (str[i] && findStrChar(delimeter, str[i]) == -1)
 			word += str[i++];
-		result.push_back(word);
+		if (!word.empty()) // * change
+			result.push_back(word);
 	}
 	return (result);
 }

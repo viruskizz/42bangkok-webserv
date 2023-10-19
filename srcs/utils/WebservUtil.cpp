@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv_util1.cpp                                  :+:      :+:    :+:   */
+/*   WebservUtil.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:28:18 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/08/10 00:36:50 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/09/29 22:36:21 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,8 @@ std::string	stringTrim(std::string &string, std::string const &delimeters)
 			break ;
 		}
 	}
+	if (end == start)
+		return (result); 
 	result = string.substr(start, ((end - start) + 1));
 	return (result);
 }
@@ -266,5 +268,63 @@ char	*stringTosChar(std::string const &string)
 		index++;
 	}
 	result[index] = '\0';
+	return (result);
+}
+
+char	**vectorStringToChar(std::vector<std::string> vector)
+{
+	char	**result;
+	int		index;
+
+	index = 0;
+	result = new char * [vector.size() + 1];
+	if (!result)
+		return (NULL);
+	while (index < vector.size())
+	{
+		result[index] = stringTosChar(vector.at(index));
+		index++;
+	}
+	result[index] = NULL;
+	return (result);
+}
+
+bool	findStringInVector(std::vector<std::string> const & vector, std::string const &string)
+{
+	for(std::vector<std::string>::const_iterator it = vector.begin(); it != vector.end(); ++it)
+	{
+		if (*it == string)
+			return (true);
+	}
+	return (false);
+}
+
+int	hexadacimalToInt(const char *hexadecimal)
+{
+	int		result;
+	int		index;
+	char	letter;
+	int		base;
+
+	result = 0;
+	index = strlen(hexadecimal) - 1;
+	base = 1;
+	if (!hexadecimal)
+		return (-1);
+	while (index >= 0)
+	{
+		if (isdigit(hexadecimal[index]))
+			result += (hexadecimal[index] - '0') * base;
+		else if (isalpha(hexadecimal[index]))
+		{
+			letter = toupper(hexadecimal[index]);
+			if (letter >= 'A' && letter <= 'F')
+				result += (letter - 55) * base;
+		}
+		else
+			return (-1);
+		base *= 16;
+		index--;
+	}
 	return (result);
 }
