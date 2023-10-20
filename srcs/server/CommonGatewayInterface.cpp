@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:43:02 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/20 09:34:36 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 09:57:26 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 CommonGatewayInterface::CommonGatewayInterface(void) :
 _protocol(""), _scheme(""), _serverPort(""), _method(""), _pathInfo(""), _pathTranslated(""),
-_pathFileName(""), _scriptName(""), _fileName(""), _query(""), _clientName(""), _clientPort(""), _server(),
+_pathFileName(""), _scriptName(""), _fileName(""), _query(""), _clientName(""), _clientPort(""),
 _cgiStatus(200)
 {
 	std::cout << "(CommonGatewayInterface) Defualt constructor is called." << std::endl;
@@ -292,7 +292,7 @@ char	**CommonGatewayInterface::getExecutorPath(std::string const &exceLanguage)
 #define INFILE_NAME (char *)"t1s3AStaTEmpuLAl1flYinp00tfoRC0mmoNGAt3way1Nte2fac335ucuT3"
 
 // int	CommonGatewayInterface::pathExecutor(char **execPath, std::string requestBody)
-int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBody> const &requestBody, int i)
+int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBody> const &requestBody, int index)
 {
 	int				fd[2];
 	int				inputFd;
@@ -308,8 +308,8 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 		return (-1);
 	std::string content;
 	content.clear();
-	if (i != -1)
-		inputFile << requestBody.at(i).getContent();
+	if (index != -1)
+		inputFile << requestBody.at(index).getContent();
 	inputFile.close();
 	if (pipe(fd) < 0)
 	{

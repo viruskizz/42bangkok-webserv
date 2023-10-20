@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/08 23:20:21 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/20 05:43:53 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 12:34:21 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,13 @@ HttpRequest::HttpRequest(int socket, Config const &server) : _serverNum(0), _max
 	if (!this->_requestHeader.size())
 		return ;
 	// std::cout << "[Debug]" << "initPath" << std::endl;
-	for (int index = 0; index < this->_requestHeader.at("Method").size(); ++index)
-		this->_requestHeader.at("Method").at(index) = toupper(this->_requestHeader.at("Method").at(index));
 	// std::cout << "[Debug]" << this->_requestHeader.at("Method") << std::endl;
 	this->initHttpRequest(server);
+	for (int index = 0; index < this->_requestHeader.at("Method").size(); ++index)
+		this->_requestHeader.at("Method").at(index) = toupper(this->_requestHeader.at("Method").at(index));
+	std::cout << "======================request======================" << std::endl;
+	for (std::map<std::string, std::string>::const_iterator it = this->_requestHeader.begin(); it != this->_requestHeader.end(); ++it)
+		std::cout << "|" << it->first << "|: |" << it->second << "|" << std::endl;
 }
 
 HttpRequest::HttpRequest(HttpRequest const &rhs)
