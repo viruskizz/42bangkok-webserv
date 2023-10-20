@@ -85,3 +85,6 @@ char						*stringTosChar(std::string const &string);
 char						**vectorStringToChar(std::vector<std::string> vector);
 bool						findStringInVector(std::vector<std::string> const & vector, std::string const &string);
 int							hexadacimalToInt(const char *hexadecimal);
+bool						isStringFound(std::string const &string, std::string const &check);
+bool						isMapKeyFound(std::map<std::string, std::string> const &map, std::string const &key);
+bool						isStringInArray(char const **array, std::string const &string);

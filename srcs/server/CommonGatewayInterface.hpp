@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:31:38 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/09/30 07:27:28 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 08:54:36 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,8 @@ class CommonGatewayInterface
 		std::string	getExecutorLanguage(Config const &server, HttpRequest const &request);
 		char		**getExecutorPath(std::string const &exceLanguage);
 		int			pathExecutor(char **execPath, std::vector<RequestBody> const &requestBody, int i);
+		std::string	executeWithBody(HttpRequest const &request, char **executePath);
+		std::string	errnoCheck(void);
 		// int			pathExecutor(char **execPath, std::string requestBody);
 };
 

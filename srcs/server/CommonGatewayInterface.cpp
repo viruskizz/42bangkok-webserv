@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:43:02 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/09 15:56:46 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 09:34:36 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,14 @@ int	CommonGatewayInterface::getStatusCode(void) const
 	return (this->_cgiStatus);
 }
 
+static void	writeFile(std::string const &name, std::string const content)
+{
+	std::ofstream	file;
+	file.open(name, std::ofstream::trunc | std::ofstream::out);
+	file << content;
+	file.close();
+}
+
 void	CommonGatewayInterface::printValue(void) const
 {
 	std::cout << "=========================================================" << std::endl;
@@ -99,6 +107,7 @@ void	CommonGatewayInterface::printValue(void) const
 
 static std::string	readFile(int fd);
 static bool	checkCGIHeader(std::string &content, HttpRequest const &request);
+static int	findBreakLine(std::vector<std::string> const &splited);
 
 // TODO review ERROR with the path for executing isn't exist;
 std::string	CommonGatewayInterface::executeCGI(Config const &server, HttpRequest const &request)
@@ -107,101 +116,129 @@ std::string	CommonGatewayInterface::executeCGI(Config const &server, HttpRequest
 	int			fd;
 	char		**executePath;
 
-	if (this->_cgiStatus != 200)
-		return (content);
-	// if (server.getServers().at(request.getServerNum())->getCGI().empty())
-	// {
-	// 	this->_cgiStatus = 503;
+	std::cout << "[Debug] CGIexecute : " << this->_cgiStatus << std::endl;
+	// if (this->_cgiStatus != 200)
 	// 	return (content);
-	// }
+	std::cout << "[DebugPost] hello" << std::endl;
 	executePath = getExecutorPath(getExecutorLanguage(server, request));
 	if (!executePath)
 	{
 		std::cerr << "exeuctePath == NULL" << std::endl;
 		this->_cgiStatus = 404; // TODO check the status code with path not exist;
-		return (content);
+		return ("content");
 	}
-	// if (request.getRequestBody().size())
-	if (request.getRequestBody().size() == 0)
+	std::cout << "[Debug] hello" << std::endl;
+	if (!request.getRequestBody().size())
 	{
 		fd = pathExecutor(executePath, request.getRequestBody(), -1);
+		if (fd == -1)
+			return (this->errnoCheck());
 		content = readFile(fd);
 		close(fd);
 	}
+	else
+		content = this->executeWithBody(request, executePath);
+	if (!request.getFileCGI().empty() && !checkCGIHeader(content, request))
+		this->_cgiStatus = 500;
+	writeFile("./result.txt", content);
+	std::cout << "[Debug][End] CGIexecute () : " << std::endl;
+	return (content);
+}
 
-	std::string head;
-	std::string body;
-	std::vector<string> splited;
+std::string	 CommonGatewayInterface::executeWithBody(HttpRequest const &request, char **executePath)
+{
+	std::string			body;
+	std::string			content;
+	std::vector<string>	splited;
+	int					fd;
+	int					breakLine;
+
+	std::cout << "[Debug] body + cgi" << std::endl;
 	body.clear();
-	if (request.getRequestBody().size())
+	for (int index = 0; index < request.getRequestBody().size(); ++index)
 	{
-		for (int i = 0; i < request.getRequestBody().size(); ++i)
+		fd = pathExecutor(executePath, request.getRequestBody(), index);
+		if (fd == -1)
+			return (this->errnoCheck());
+		content = readFile(fd);
+		splited = split(content, '\n');
+		breakLine = findBreakLine(splited);
+		while (true)
 		{
-
-			fd = pathExecutor(executePath, request.getRequestBody(), i);
-		// else
-			// fd = pathExecutor(executePath, "");
-			if (fd == -1)
-			{
-				// TODO check errno with status code;
-				if (errno == 2)
-					this->_cgiStatus = 404;
-				else if (errno == 13)
-					this->_cgiStatus = 401;
-				else
-					this->_cgiStatus = 500;
-				return (content);
-			}
-			content = readFile(fd);
-			splited = split(content, '\n');
-			// if (i != request.getRequestBody().size() - 1)
-			// 	body += "8000\r\n" + splited.at(splited.size() - 1) + "\r\n";
-			// else
-			// 	body += "6100\r\n" + splited.at(splited.size() - 1) + "\r\n0\r\n";
-			body += splited.at(splited.size() - 1);
-				// body += splited.at(splited.size() - 1);
-			// std::cout << "-> " << content << std::endl;
-			close(fd);
+			body += splited.at(breakLine++);
+			if (breakLine >= splited.size())
+				break ;
+			// body += "\n";
 		}
+		// body += splited.at(splited.size() - 1);
+		// std::cout << "[============================]" << std::endl;
+		// std::cout << body << std::endl;
+		// if (i != request.getRequestBody().size() - 1)
+		// 	body += "8000\r\n" + splited.at(splited.size() - 1) + "\r\n";
+		// else
+		// 	body += "6100\r\n" + splited.at(splited.size() - 1) + "\r\n0\r\n";
+			// body += splited.at(splited.size() - 1);
+		// std::cout << "-> " << content << std::endl;
+		close(fd);
 	}
-
-	std::cout << "hello hello hello : " << body.length() << std::endl;
-	if (splited.size())
+	if (!request.getFileCGI().empty() && splited.size())
 	{
 		content.clear();
-		// content = "Content-Length: " +  intToString(body.size()) + "\r\n";
-		content = "Content-Length: 100000000\r\n";
 		// content = "Transfer-Encoding: chunked\r\n";
-		for (int i = 0; i < splited.size() - 2; ++i)
+		breakLine = !findBreakLine(splited) ? 0 : findBreakLine(splited) - 1;
+		for (int i = 0; i < breakLine; ++i)
 			content += stringTrim(splited.at(i), "\r\n") + "\r\n";
+		if (!isStringFound(content, "Content-Length: "))
+			content += "Content-Length: " +  intToString(body.size()) + "\r\n";
 		content += "\r\n";
+		std::cout << "[Debug] content : |" << content << "|" << std::endl;
 		// content += "1000000\r\n";
 		content += body + "\r\n";
 		// content += "<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<title>hello</title>\n\t</head>\n\t<body>\n\t\t" + body + "\n\t</body>\n</html>\r\n";
-		// content += EOF;
-		// content += "0\r\n";
-		// content += "0\r\n";
 		// content += "0\r\n\r\n0\r\n\r\n";
-		// std::cout << content << std::endl;
-		std::ofstream	ffile;
-		ffile.open("./log.txt", std::ofstream::trunc | std::ofstream::out);
-		ffile << content;
-		ffile.close();
+		writeFile("./log.txt", content);
 	}
-
-	if (!checkCGIHeader(content, request))
-		this->_cgiStatus = 500;
-	std::cout << "[Debug][End] CGIexecute ()" << std::endl;
-	std::ofstream	ffile;
-	ffile.open("./result.txt", std::ofstream::trunc | std::ofstream::out);
-	ffile << content;
-	ffile.close();
+	std::cout << "[Debug][Breakline] : " << findBreakLine(splited) << std::endl;
 	return (content);
+}
+
+std::string	CommonGatewayInterface::errnoCheck(void)
+{
+	if (errno == 2)
+		this->_cgiStatus = 404;
+	else if (errno == 13)
+		this->_cgiStatus = 401;
+	else
+		this->_cgiStatus = 500;
+	return ("");
+}
+
+static int	findBreakLine(std::vector<std::string> const &splited)
+{
+	int	count;
+
+	count = 0;
+	while (count < splited.size())
+	{
+		if (splited.at(count) == "\r")
+			return (++count);
+		count++;
+	}
+	return (0);
 }
 
 // TODO change ROOT to real variable;
 std::string CommonGatewayInterface::getExecutorLanguage(Config const &server, HttpRequest const &request)
 {
+	std::cout << "[Debug][CGI-getExecutorLanguge] fileName : |" << this->_fileName << "|" << std::endl;
+	// if (this->_fileName.empty())
+	// {
+	// 	std::vector<std::string> splited;
+	// 	splited = split(request.getPath(), '/');
+	// 	this->_fileName = splited.at(splited.size() - 1);
+	// 	this->_pathFileName = request.getPath();
+	// }
+
 	if (this->_fileName.find(".py", this->_fileName.length() - 3) != std::string::npos)
 		return ("python3");
 	else if (this->_fileName.find(".php", this->_fileName.length() - 4) != std::string::npos)
@@ -230,7 +267,7 @@ char	**CommonGatewayInterface::getExecutorPath(std::string const &exceLanguage)
 	}
 	while (environ[index])
 	{
-		if (!strncmp(environ[index], "PATH=", 1))
+		if (!strncmp(environ[index], "PATH=", 5))
 			break ;
 		index++;
 	}
@@ -265,37 +302,15 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 	char			**environment;
 
 	std::cout << "[Debug][Begin]" << " - pathExcuteor - " << std::endl;
-	// if (!requestBody.empty())
-	// {
-		std::cout << "(pathExecutor) read request body" << std::endl;
-		// inputFile.open(INFILE_NAME, std::ofstream::trunc | std::ofstream::out);
-		inputFile.open(INFILE_NAME);
-		if (!inputFile.is_open())
-			return (-1);
-		std::string content;
-		content.clear();
-		int len = 0;
-		// std::cout << "[Debug] contentSize " << requestBody.at(i).getContentLength() << std::endl;
-		// for (int i = 0; i < requestBody.size(); ++i)
-		// {
-			// std::cout << "[Debug] contentLength [" << requestBody.at(i).getContentLength() << "]==[" << requestBody.at(i).getContent().size() << "]" << std::endl;
-			if (i != -1)
-				inputFile << requestBody.at(i).getContent();
-			// {
-			// 	if (requestBody.at(i).getContentLength() == 32768)
-			// 		inputFile << "8000\r\n";
-			// 	else
-			// 		inputFile << "6100\r\n";
-			// 	inputFile << requestBody.at(i).getContent();
-			// 	if (requestBody.size() == i -1)
-			// 		inputFile << "0\r\n\r\n";
-			// 	len += requestBody.at(i).getContentLength();
-			// }
-		// }
-		
-		// inputFile << content;
-		inputFile.close();
-	// }
+	std::cout << "(pathExecutor) read request body" << std::endl;
+	inputFile.open(INFILE_NAME, std::ofstream::trunc | std::ofstream::out);
+	if (!inputFile.is_open())
+		return (-1);
+	std::string content;
+	content.clear();
+	if (i != -1)
+		inputFile << requestBody.at(i).getContent();
+	inputFile.close();
 	if (pipe(fd) < 0)
 	{
 		std::cerr << "ERROR: usuccess piped." << std::endl;
@@ -309,34 +324,16 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 	}
 	else if (!pid)
 	{
-		this->_environment.push_back("CONTENT_LENGTH: " + intToString(len));
-		this->_environment.push_back("CONTENT_TYPE: test/file");
-		// if (!requestBody.empty())
-		// {
-			inputFd = open(INFILE_NAME, O_RDONLY);
-			if (inputFd < 0)
-				exit(2);
-			// if (!findStringInVector(this->_environment, "REQUEST_METHOD=POST"))
-			dup2(inputFd, STDIN_FILENO);
-			dup2(fd[1], STDOUT_FILENO);
-			close(fd[0]);
-			close(fd[1]);
-			close(inputFd);
-			// if (inputFd < 0 || dup2(inputFd, STDIN_FILENO) == -1 || dup2(fd[1], STDOUT_FILENO) == -1
-			// 	|| close(fd[0]) == -1 || close(fd[1]) == -1 || close(inputFd) == -1)
-				// exit(2);
-
-			// }
-		// }
-		// else if (dup2(fd[1], STDOUT_FILENO) == -1 || close(fd[0]) == -1 || close(fd[1] == -1))
-		// 	exit(1);
+		// this->_environment.push_back("CONTENT_LENGTH: " + intToString(len));
+		// this->_environment.push_back("CONTENT_TYPE: test/file");
+		inputFd = open(INFILE_NAME, O_RDONLY);
+		if (inputFd < 0 || dup2(inputFd, STDIN_FILENO) == -1 || dup2(fd[1], STDOUT_FILENO) == -1
+			|| close(fd[0]) == -1 || close(fd[1]) == -1 || close(inputFd) == -1)
+			exit(2);
 		environment = vectorStringToChar(this->_environment);
-		// std::cerr << "[Debug] ====== environmentPrint() ========" << std::endl;
-		// for (int i = 0; environment[i]; ++i)
-		// 	std::cerr << "-> " << environment[i] << std::endl;
-		// for (int i = 0; execPath[i]; ++i)
-		// 	std::cerr << "-> " << execPath[i] << std::endl;
 		std::cerr << "[Debug]" << "executed" << std::endl;
+		for (int i = 0; execPath[i]; ++i)
+			std::cerr << execPath[i] << std::endl;
 		execve(execPath[0], execPath, environment);
 		std::cerr << "ERORR: unsuccessful execve" << std::endl;
 		exit(1);
@@ -344,7 +341,6 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 	else
 	{
 		waitpid(pid, &returnValue, 0);
-		std::cout << "done" << std::endl;
 		if (!access(INFILE_NAME, F_OK))
 			remove(INFILE_NAME);
 		close(fd[1]);
@@ -553,7 +549,7 @@ void	CommonGatewayInterface::initScriptURI(Config const &server, HttpRequest con
 	std::vector<std::string>	splited;
 	int							fileIndex;
 
-	std::cout << "[Debug] " << request.getRequestHeader().at("URL") << std::endl;
+	std::cout << "[Debug][initScripURI] " << request.getRequestHeader().at("URL") << std::endl;
 	URISplited = split(request.getRequestHeader().at("URL"), '?');
 	if (URISplited.size() == 2)
 		this->_query = URISplited[1];
@@ -576,6 +572,9 @@ void	CommonGatewayInterface::initScriptURI(Config const &server, HttpRequest con
 		else
 			this->_serverPort = "80";
 	}
+	std::cout << "[Debug][initScript] pathSplited : fileIndex -> |" << fileIndex << "|" << std::endl;
+	for (int i = 0; i < pathSplited.size(); ++i)
+		std::cout << " -> |" << pathSplited[i] << "|" << std::endl;
 	this->_fileName = pathSplited[fileIndex];
 	// this->_fileName = request.getPath();
 	// for (int i = 0; i <= fileIndex; ++i)
@@ -591,52 +590,24 @@ void	CommonGatewayInterface::initScriptURI(Config const &server, HttpRequest con
 
 static int	getFileIndex(std::string const &url, std::vector<std::string> &pathSplited, HttpRequest const &request)
 {
-	// int			fileIndex;
-	// DIR			*directory;
-	// std::string	path;
 	std::string	fileCGI;
 
-	// fileIndex = -1;
-	// path.clear();
-	fileCGI = request.getFileCGI();
+	if (!request.getFileCGI().empty())
+		fileCGI = request.getFileCGI();
 	if (fileCGI.find('*') != std::string::npos)
 		fileCGI.erase(0, 1);
 	pathSplited = split(url, '/');
 	for (int i = 0; i < pathSplited.size(); ++i)
 	{
-		std::cout << "[Debug] : |" << pathSplited.at(i) << "| == |" << fileCGI << "|" << "    : " << request.getFileCGI() << std::endl; 
+		std::cout << "[Debug][getFileIndex] : |" << pathSplited.at(i) << "| == |" << fileCGI << "|" << "    : " << request.getFileCGI() << std::endl;
 		if (request.getFileCGI().find('*') != std::string::npos && pathSplited.at(i).find(fileCGI) != std::string::npos)
 			return (i);
 		else if (pathSplited.at(i) == fileCGI)
 			return (i);
+		else if (fileCGI.empty() && access(pathSplited.at(i).c_str(), F_OK | R_OK | X_OK))
+			return (i);
 	}
 	return (-1);
-	// path += ROOT;
-	// std::vector< std::map<std::string, std::string> >::const_iterator vectorIt = server.getServers().at(request.getServerNum())->getLocations().begin();
-	// std::vector< std::map<std::string, std::string> > const &locations = server.getServers().at(request.getServerNum())->getLocations();
-	// for (vectorIt = locations.begin(); vectorIt != locations.end(); ++vectorIt)
-	// {
-	// 	std::map<std::string, std::string> mapIt = *vectorIt;
-	// 	if (mapIt.find("cgi_file") != mapIt.end() && find(mapIt.at("cgi_file")))
-	// 	{
-
-	// 	}
-
-	// }
-
-	// path += server.getServers().at(request.getServerNum())->getRoot();
-	// for (int i = 0; i < pathSplited.size(); ++i)
-	// {
-	// 	path += "/" + pathSplited[i];
-	// 	directory = opendir(path.c_str());
-	// 	if (!directory)
-	// 	{
-	// 		fileIndex = i;
-	// 		break ;
-	// 	}
-	// 	closedir(directory);
-	// }
-	// return (fileIndex);
 }
 
 static bool	checkCGIHeader(std::string &content, HttpRequest const &request)
@@ -672,9 +643,7 @@ static bool	checkCGIHeader(std::string &content, HttpRequest const &request)
 				content.erase(i, 1);
 			if (i < content.length() && content.at(i) == '\n')
 				content.erase(i, 1);
-
-			// content.erase(content.find(status), 8 + position);
-			std::cout << "|" << headerRespond << "|" << std::endl;
+			std::cout << "[Debug]|" << headerRespond << "|" << std::endl;
 			content.insert(0, headerRespond);
 			return (true);
 		}

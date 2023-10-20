@@ -18,10 +18,8 @@ private:
 	string m_listen;
 	string m_root;
 	string m_index;
-	// string m_cgi;
 	bool m_dirList;
 	int m_clientSize;
-	// struct timeval m_timeOut;
 	vector<string> m_method;
 	map<string, string> m_returnPage;
 	vector<StringMap> m_locations;

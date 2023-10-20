@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/08 23:20:21 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/10 20:50:36 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 05:43:53 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -495,13 +495,13 @@ bool	HttpRequest::innitCGIPath(std::vector<std::map<std::string,
 	std::string	fileName = pathURL;
 
 	if (pathURL.find('/') != std::string::npos)
-		fileName = pathURL.substr(pathURL.rfind('/'));
+		fileName = pathURL.substr(pathURL.rfind('/') + 1);
 	if (fileCGI.find('*') == 0)
 	{
 		fileCGI.erase(0, 1);
 		if (pathURL.rfind(fileCGI) == pathURL.length() - fileCGI.length() && pathURL.length() > fileCGI.length())
 		{
-			this->_path = it->at("cgi_pass");;
+			this->_path = it->at("cgi_pass");
 			this->_fileCGI = it->at("cgi_file");
 			if (it->find("client_max_size") != it->end())
 				this->_maxBody = stringToint(it->at("client_max_size"));
@@ -522,6 +522,7 @@ bool	HttpRequest::innitCGIPath(std::vector<std::map<std::string,
 			this->_maxBody = stringToint(it->at("client_max_size"));
 		return (true);
 	}
+	std::cout << "[Debug][initCGI] : initCGIPATH : |" << fileCGI << "|==|" << fileName << "|" << std::endl;
 	return (false);
 }
 

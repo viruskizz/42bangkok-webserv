@@ -43,34 +43,21 @@ void	ServerConf::validate(void) const
 		location = this->m_locations.begin();
 		while (location != this->m_locations.end())
 		{
-			if (location->find("path") != location->end() && location->find("root") != location->end()
-				|| location->find("cgi_file") != location->end() && location->find("cgi_pass") != location->end())
+			locationMap = location->begin();
+			while (locationMap != location->end())
 			{
-				if (location->size() < 2 && location->size() > 4)
-				{
-					std::cout << "[Debug] locationSize: " << location->size() << std::endl; 
-					throw "webserv : config-ERROR: Invalid size of Location.";
-				}
-				locationMap = location->begin();
-				while(locationMap != location->end())
-				{
-					isFound = false;
-					for (int i = 0; LOCATION_KEYS[i]; ++i)
-					{
-						if (!strncmp(locationMap->first.c_str(), LOCATION_KEYS[i], locationMap->first.length()))
-						{
-							isFound = true;
-							std::cout << "[Debug] " << locationMap->first << std::endl;
-							break ;
-						}
-					}
-					if (!isFound)
-						throw "webserv : config-ERROR: Invalid key of Location.";
-					++locationMap;
-				}
+				if (!isStringInArray(LOCATION_KEYS, locationMap->first))
+					throw "webserv : config-ERROR: Invalid Key of Location.";
+				++locationMap;
 			}
-			else
-				throw "webserv : config-ERROR: Invalid Key of Location.";
+			if (isMapKeyFound(*location, "path") && !isMapKeyFound(*location, "root"))
+				throw "webserv : config-ERROR: Key \"path\" must following with \"root\".";
+			else if( isMapKeyFound(*location, "root") && !isMapKeyFound(*location, "path"))
+				throw "webserv : config-ERROR: Key \"root\" must following with \"path\".";
+			else if (isMapKeyFound(*location, "cgi_file") && !isMapKeyFound(*location, "cgi_pass"))
+				throw "webserv : config-ERROR: Key \"cgi_file\" must following with \"cgi_pass\".";
+			else if (isMapKeyFound(*location, "cgi_pass") && !isMapKeyFound(*location, "cgi_file"))
+				throw "webserv : config-ERROR: Key \"cgi_pass\" must following with \"cgi_file\".";
 			++location;
 		}
 	}

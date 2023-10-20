@@ -188,7 +188,7 @@ std::string	HttpRespond::getRespond(void) const
 void	HttpRespond::initHeader(HttpRequest const &request)
 {
 	this->_respondHeader.clear();
-	this->_respondHeader += /*request.getRequestHeader().at("Protocol")*/std::string("HTTP/1.1") + " " + this->_listStatusCode.at(this->_code) + BREAK_LINE; 
+	this->_respondHeader += request.getRequestHeader().at("Protocol") + " " + this->_listStatusCode.at(this->_code) + BREAK_LINE; 
 	if (this->_html)
 		this->_respondHeader += std::string("Content-Type: text/html") + BREAK_LINE;
 	else
@@ -231,8 +231,6 @@ std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs)
 	out << "\n=============================================================" << std::endl;
 	return (out);
 }
-
-// static int	getFileDiscriptor(HttpRequest &request, Config const &server);
 
 int	HttpRespond::readFile(std::string const &fileName)
 {
@@ -404,7 +402,6 @@ int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server, in
 		CommonGatewayInterface	cgi(server, request);
 
 		this->_bodyContent.clear();
-
 		this->_bodyContent = cgi.executeCGI(server, request);
 		if (cgi.getStatusCode() == 200)
 			this->_html = true;

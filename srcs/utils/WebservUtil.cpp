@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:28:18 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/09/29 22:36:21 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 06:55:00 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -327,4 +327,34 @@ int	hexadacimalToInt(const char *hexadecimal)
 		index--;
 	}
 	return (result);
+}
+
+bool	isMapKeyFound(std::map<std::string, std::string> const &map, std::string const &key)
+{
+	if (map.find(key) != map.end())
+		return (true);
+	return (false);
+}
+
+bool	isStringFound(std::string const &string, std::string const &check)
+{
+	if (string.find(check) != std::string::npos)
+		return (true);
+	return (false);
+}
+
+bool	isStringInArray(char const **array, std::string const &string)
+{
+	int index;
+	int len;
+
+	index = 0;
+	len = stringsCount((char **)array);
+	while (index < len)
+	{
+		if (!strncmp(string.c_str(), array[index], string.length()))
+			return (true);
+		++index;
+	}
+	return (false);
 }

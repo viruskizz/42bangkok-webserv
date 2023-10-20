@@ -121,7 +121,6 @@ void Server::start(Config const &configFile)
 					// std::cout << "********** Sending Respond to Client **********" << std::endl;
 					fcntl(socket, F_SETFL, O_NONBLOCK);
 					HttpRequest request(socket, configFile);
-					// std::cout << request << std::endl;
 					if (request.getRequestHeader().size())
 					{
 						if (request.getRequestBody().size() && request.getFileCGI().empty() && request.getRequestHeader().at("Method") != "PUT")
