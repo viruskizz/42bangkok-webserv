@@ -33,7 +33,7 @@ std::string	stringTrim(std::string &string, std::string const &delimeters)
 	result = "";
 	if (string == "" || delimeters == "")
 		return (string);
-	for (int i = 0; i < string.length(); ++i)
+	for (size_t i = 0; i < string.length(); ++i)
 	{
 		if (delimeters.find(string[i]) == std::string::npos)
 		{
@@ -201,7 +201,7 @@ char	*stringDuplicate(char *string)
 char	*stringDuplicate(std::string const &string)
 {
 	char	*result;
-	int		index;
+	size_t		index;
 
 	index = 0;
 	result = new char[string.size() + 1];
@@ -256,7 +256,7 @@ char	**stringAdd(char **strings, char *string, int mode)
 char	*stringTosChar(std::string const &string)
 {
 	char	*result;
-	int		index;
+	size_t	index;
 
 	index = 0;
 	if (string.empty())
@@ -274,7 +274,7 @@ char	*stringTosChar(std::string const &string)
 char	**vectorStringToChar(std::vector<std::string> vector)
 {
 	char	**result;
-	int		index;
+	size_t	index;
 
 	index = 0;
 	result = new char * [vector.size() + 1];

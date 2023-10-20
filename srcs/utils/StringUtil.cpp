@@ -1,4 +1,5 @@
 #include "StringUtil.hpp"
+static int	findStrChar(std::string const & str, char del);
 
 std::vector<std::string> StringUtil::split(std::string const &string, char delimeter) {
 	std::vector<std::string>	result;
@@ -51,7 +52,7 @@ std::vector<std::string> StringUtil::split(std::string const &str, std::string c
 std::string StringUtil::ltrim(std::string const & s) {
     std::string::const_iterator it = s.begin();
     while (it != s.end() && isspace(*it))
-        it++;
+		it++;
 	std::string::const_reverse_iterator rit = s.rbegin();
     return std::string(it, rit.base());
 }
@@ -61,7 +62,7 @@ std::string StringUtil::rtrim(std::string const & s) {
 	std::string::const_iterator it = s.begin();
     std::string::const_reverse_iterator rit = s.rbegin();
     while (rit.base() != it && isspace(*rit))
-        rit++;
+		rit++;
     return std::string(it, rit.base());
 }
 
@@ -69,16 +70,16 @@ std::string StringUtil::rtrim(std::string const & s) {
 std::string StringUtil::trim(std::string const & s) {
     std::string::const_iterator it = s.begin();
     while (it != s.end() && isspace(*it))
-        it++;
+		it++;
     std::string::const_reverse_iterator rit = s.rbegin();
     while (rit.base() != it && isspace(*rit))
-        rit++;
+		rit++;
     return std::string(it, rit.base());
 }
 
 std::string StringUtil::space(size_t size) {
 	std::string sp = "";
-	for (int i = 0; i < size; i++) {
+	for (size_t i = 0; i < size; i++) {
 		sp += " ";
 	}
 	return sp;
