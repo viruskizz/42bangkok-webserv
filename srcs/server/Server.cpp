@@ -26,7 +26,10 @@ void Server::init(Config const &configFile)
 		m_hint.ai_socktype = SOCK_STREAM;
 		m_hint.ai_flags = AI_PASSIVE;
 
-		errorNumber = getaddrinfo(/*configFile.getServers().at(index)->getServerName().c_str()*/0,
+		errorNumber = getaddrinfo(
+			// configFile.getServers().at(index)->getServerName().c_str(),
+			"127.0.0.1",
+			// 0,
 			configFile.getServers().at(index)->getListen().c_str(), &m_hint, &m_addrList);
 		if (errorNumber != 0)
 			exitWithError(const_cast<char *>(gai_strerror(errorNumber)), EE_PERR);
@@ -61,81 +64,6 @@ void Server::init(Config const &configFile)
 	}
 }
 
-// void Server::start(Config const &configFile)
-// {
-// 	int 			maxSocketFd;
-// 	struct timeval	timeOut;
-// 	fd_set			currentSocket;
-// 	fd_set			readySocket;
-//
-// 	timeOut.tv_sec = 1;
-// 	timeOut.tv_usec = 0;
-// 	FD_ZERO(&currentSocket);
-// 	for (size_t i = 0; i < m_serverSockets.size(); ++i)
-// 		FD_SET(m_serverSockets[i], &currentSocket);
-// 	maxSocketFd = m_serverSockets.back() + 1;
-// 	while (true)
-// 	{
-// 		readySocket = currentSocket;
-// 		// std::cout << "********** Waiting for Client Request **********" << std::endl;
-// 		if (select(maxSocketFd, &readySocket, NULL, NULL, &timeOut) < 0)
-// 			exitWithError((char *)"webserve: ERROR", EE_PERR);
-// 		// std::cout << "********** Client Sent Some Request **********" << std::endl;
-// 		for (int socket = 0; socket < maxSocketFd; ++socket)
-// 		{
-// 			if (FD_ISSET(socket, &readySocket))
-// 			{
-// 				bool	isFound = false;
-// 				int		clientSocket;
-// 				for (size_t j = 0; j < m_serverSockets.size(); ++j)
-// 				{
-// 					int jsocket = m_serverSockets[j];
-// 					if (jsocket == socket)
-// 					{
-// 						// std::cout << "********** Accept Client Request ***********" << std::endl;
-// 						struct addrinfo *address = m_address[j];
-// 						clientSocket = accept(jsocket, address->ai_addr, &address->ai_addrlen);
-// 						fcntl(clientSocket, F_SETFL, O_NONBLOCK);
-// 						if (clientSocket < 0)
-// 							exitWithError((char *)"webserv: ERROR: ", EE_PERR);
-// 						FD_SET(clientSocket, &currentSocket);
-// 						if (clientSocket > maxSocketFd - 1)
-// 							maxSocketFd = clientSocket + 1;
-// 						isFound = true;
-// 						// std::cout << "********** Accept Client Done **********" << std::endl;
-// 					}
-// 				}
-// 				if (!isFound)
-// 				{
-// 					// std::cout << "********** Sending Respond to Client **********" << std::endl;
-// 					fcntl(socket, F_SETFL, O_NONBLOCK);
-// 					HttpRequest request(socket, configFile);
-// 					if (request.getRequestHeader().size())
-// 					{
-// 						if (request.getRequestBody().size() && request.getFileCGI().empty() && request.getRequestHeader().at("Method") != "PUT")
-// 						{
-// 							for (size_t count = 0; count < request.getRequestBody().size(); ++count)
-// 							{
-// 								HttpRespond respond(socket, request, configFile, count);
-// 								respond.sendRepond(socket);
-// 							}
-// 						}
-// 						else
-// 						{
-// 							HttpRespond respond(socket, request, configFile, 0);
-// 							respond.sendRepond(socket);
-// 						}
-//						
-// 					}
-// 					close(socket);
-// 					FD_CLR(socket, &currentSocket);
-// 					// std::cout << "********** Sent Respond to Client **********" << std::endl;
-// 				}
-// 			}
-// 		}
-// 	}
-// }
-
 void Server::start(Config const &configFile)
 {
 	int 			maxSocketFd;
@@ -145,6 +73,7 @@ void Server::start(Config const &configFile)
 
 	timeOut.tv_sec = 1;
 	timeOut.tv_usec = 0;
+	(void) timeOut;
 	FD_ZERO(&currentSocket);
 	for (size_t i = 0; i < m_serverSockets.size(); ++i)
 		FD_SET(m_serverSockets[i], &currentSocket);
@@ -152,65 +81,141 @@ void Server::start(Config const &configFile)
 	while (true)
 	{
 		readySocket = currentSocket;
-		if (select(maxSocketFd, &readySocket, NULL, NULL, &timeOut) < 0)
+		std::cout << "********** Waiting for Client Request **********" << std::endl;
+		// if (select(maxSocketFd, &readySocket, NULL, NULL, &timeOut) < 0)
+		if (select(maxSocketFd, &readySocket, NULL, NULL, NULL) < 0)
 			exitWithError((char *)"webserve: ERROR", EE_PERR);
+		std::cout << "********** Client Sent Some Request **********" << std::endl;	
 		for (int socket = 0; socket < maxSocketFd; ++socket)
 		{
 			if (FD_ISSET(socket, &readySocket))
 			{
-				if(!this->cilentAccept(currentSocket, maxSocketFd, socket))
-					sentRespond(configFile, currentSocket, socket);
+				bool	isFound = false;
+				int		clientSocket;
+				for (size_t j = 0; j < m_serverSockets.size(); ++j)
+				{
+					int jsocket = m_serverSockets[j];
+					if (jsocket == socket)
+					{
+						// std::cout << "********** Accept Client Request ***********" << std::endl;
+						struct addrinfo *address = m_address[j];
+						clientSocket = accept(jsocket, address->ai_addr, &address->ai_addrlen);
+						fcntl(clientSocket, F_SETFL, O_NONBLOCK);
+						if (clientSocket < 0)
+							exitWithError((char *)"webserv: ERROR: ", EE_PERR);
+						FD_SET(clientSocket, &currentSocket);
+						if (clientSocket > maxSocketFd - 1)
+							maxSocketFd = clientSocket + 1;
+						isFound = true;
+						// std::cout << "********** Accept Client Done **********" << std::endl;
+					}
+				}
+				if (!isFound)
+				{
+					// std::cout << "********** Sending Respond to Client **********" << std::endl;
+					fcntl(socket, F_SETFL, O_NONBLOCK);
+					HttpRequest request(socket, configFile);
+					if (request.getRequestHeader().size())
+					{
+						if (request.getRequestBody().size() && request.getFileCGI().empty() && request.getRequestHeader().at("Method") != "PUT")
+						{
+							for (size_t count = 0; count < request.getRequestBody().size(); ++count)
+							{
+								HttpRespond respond(socket, request, configFile, count);
+								respond.sendRepond(socket);
+							}
+						}
+						else
+						{
+							HttpRespond respond(socket, request, configFile, 0);
+							respond.sendRepond(socket);
+						}
+						
+					}
+					close(socket);
+					FD_CLR(socket, &currentSocket);
+					// std::cout << "********** Sent Respond to Client **********" << std::endl;
+				}
 			}
 		}
 	}
 }
 
-bool	Server::cilentAccept(fd_set currentSocket, int maxSocketFd, int socket)
-{
-	bool	isFound;
-	int		clientSocket;
-	int 	jsocket;
+// void Server::start(Config const &configFile)
+// {
+// 	int 			maxSocketFd;
+// 	struct timeval	timeOut;
+// 	fd_set			currentSocket;
+// 	fd_set			readySocket;
+
+// 	timeOut.tv_sec = 1;
+// 	timeOut.tv_usec = 0;
+// 	FD_ZERO(&currentSocket);
+// 	for (size_t i = 0; i < m_serverSockets.size(); ++i)
+// 		FD_SET(m_serverSockets[i], &currentSocket);
+// 	maxSocketFd = m_serverSockets.back() + 1;
+// 	while (true)
+// 	{
+// 		readySocket = currentSocket;
+// 		if (select(maxSocketFd, &readySocket, NULL, NULL, &timeOut) < 0)
+// 			exitWithError((char *)"webserve: ERROR", EE_PERR);
+// 		for (int socket = 0; socket < maxSocketFd; ++socket)
+// 		{
+// 			if (FD_ISSET(socket, &readySocket))
+// 			{
+// 				if(!this->cilentAccept(currentSocket, maxSocketFd, socket))
+// 					sentRespond(configFile, currentSocket, socket);
+// 			}
+// 		}
+// 	}
+// }
+
+// bool	Server::cilentAccept(fd_set currentSocket, int maxSocketFd, int socket)
+// {
+// 	bool	isFound;
+// 	int		clientSocket;
+// 	int 	jsocket;
 	
-	isFound = false;
-	for (size_t count = 0; count < m_serverSockets.size(); ++count)
-	{
-		jsocket = m_serverSockets[count];
-		if (jsocket == socket)
-		{
-			struct addrinfo *address = m_address[count];
-			clientSocket = accept(jsocket, address->ai_addr, &address->ai_addrlen);
-			fcntl(clientSocket, F_SETFL, O_NONBLOCK);
-			if (clientSocket < 0)
-				exitWithError((char *)"webserv: ERROR: ", EE_PERR);
-			FD_SET(clientSocket, &currentSocket);
-			if (clientSocket > maxSocketFd - 1)
-				maxSocketFd = clientSocket + 1;
-			isFound = true;
-		}
-	}
-	return (isFound);
-}
+// 	isFound = false;
+// 	for (size_t count = 0; count < m_serverSockets.size(); ++count)
+// 	{
+// 		jsocket = m_serverSockets[count];
+// 		if (jsocket == socket)
+// 		{
+// 			struct addrinfo *address = m_address[count];
+// 			clientSocket = accept(jsocket, address->ai_addr, &address->ai_addrlen);
+// 			fcntl(clientSocket, F_SETFL, O_NONBLOCK);
+// 			if (clientSocket < 0)
+// 				exitWithError((char *)"webserv: ERROR: ", EE_PERR);
+// 			FD_SET(clientSocket, &currentSocket);
+// 			if (clientSocket > maxSocketFd - 1)
+// 				maxSocketFd = clientSocket + 1;
+// 			isFound = true;
+// 		}
+// 	}
+// 	return (isFound);
+// }
 
-void	Server::sentRespond(Config const &configFile, fd_set currentSocket, int socket)
-{
-	fcntl(socket, F_SETFL, O_NONBLOCK);
-	HttpRequest request(socket, configFile);
-	if (request.getRequestHeader().size())
-	{
-		if (request.getRequestBody().size() && request.getFileCGI().empty() && request.getRequestHeader().at("Method") != "PUT")
-		{
-			for (size_t count = 0; count < request.getRequestBody().size(); ++count)
-			{
-				HttpRespond respond(socket, request, configFile, count);
-				respond.sendRepond(socket);
-			}
-		}
-		else
-		{
-			HttpRespond respond(socket, request, configFile, 0);
-			respond.sendRepond(socket);
-		}
-	}
-	close(socket);
-	FD_CLR(socket, &currentSocket);
-}
+// void	Server::sentRespond(Config const &configFile, fd_set currentSocket, int socket)
+// {
+// 	fcntl(socket, F_SETFL, O_NONBLOCK);
+// 	HttpRequest request(socket, configFile);
+// 	if (request.getRequestHeader().size())
+// 	{
+// 		if (request.getRequestBody().size() && request.getFileCGI().empty() && request.getRequestHeader().at("Method") != "PUT")
+// 		{
+// 			for (size_t count = 0; count < request.getRequestBody().size(); ++count)
+// 			{
+// 				HttpRespond respond(socket, request, configFile, count);
+// 				respond.sendRepond(socket);
+// 			}
+// 		}
+// 		else
+// 		{
+// 			HttpRespond respond(socket, request, configFile, 0);
+// 			respond.sendRepond(socket);
+// 		}
+// 	}
+// 	close(socket);
+// 	FD_CLR(socket, &currentSocket);
+// }

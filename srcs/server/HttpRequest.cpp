@@ -23,7 +23,6 @@ HttpRequest::HttpRequest(int socket, Config const &server) : _serverNum(0), _max
 	this->requestPaser();
 	if (!this->_requestHeader.size())
 		return ;
-	// std::cout << "[Debug]" << "initPath" << std::endl;
 	// std::cout << "[Debug]" << this->_requestHeader.at("Method") << std::endl;
 	this->initHttpRequest(server);
 	for (size_t index = 0; index < this->_requestHeader.at("Method").size(); ++index)
@@ -300,12 +299,20 @@ void	HttpRequest::initHttpRequest(Config const &server)
 
 
 	std::cout << "[Debug] - initPath() -" << std::endl;
+	std::cout << "HOST: " << this->_requestHeader.at("Host") << std::endl;
 	pathURL = (this->_requestHeader.find("URL") != this->_requestHeader.end()) ? this->_requestHeader.at("URL") : "";
 	if (pathURL.empty() || this->_requestHeader.find("Host") == this->_requestHeader.end())
 		this->_badRequest = true;
 	while (!this->_badRequest && this->_serverNum < (int) server.getServers().size())
 	{
-		if (server.getServers().at(this->_serverNum)->getServerName() == this->_requestHeader.at("Host"))
+		std::vector<std::string> hosts = StringUtil::split(this->_requestHeader.at("Host"), ":");
+		std::string hostName = hosts[0];
+		std::string hostPort = "80";
+		if (hosts.size() == 2) {
+			hostPort = hosts[1];
+		}
+		const ServerConf *servConf = server.getServers().at(this->_serverNum);
+		if (servConf->getServerName() == hostName && servConf->getListen() == hostPort)
 			break ;
 		++this->_serverNum;
 	}

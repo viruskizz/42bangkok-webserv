@@ -73,7 +73,7 @@ int	CommonGatewayInterface::getStatusCode(void) const
 static void	writeFile(std::string const &name, std::string const content)
 {
 	std::ofstream	file;
-	file.open(name, std::ofstream::trunc | std::ofstream::out);
+	file.open(name.c_str(), std::ofstream::trunc | std::ofstream::out);
 	file << content;
 	file.close();
 }
