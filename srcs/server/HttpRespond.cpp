@@ -18,6 +18,7 @@ static std::map<int, std::string>	initStatusCodeBody(void);
 
 std::map<int, std::string> const	HttpRespond::_listStatusCode = initListStatusCode();
 std::map<int, std::string> const	HttpRespond::_statusCodeBody = initStatusCodeBody();
+Cookie								HttpRespond::_cookies;
 
 HttpRespond::HttpRespond(void) :
 _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
@@ -188,7 +189,7 @@ std::string	HttpRespond::getRespond(void) const
 void	HttpRespond::initHeader(HttpRequest const &request)
 {
 	this->_respondHeader.clear();
-	this->_respondHeader += /*request.getRequestHeader().at("Protocol")*/std::string("HTTP/1.1") + " " + this->_listStatusCode.at(this->_code) + BREAK_LINE; 
+	this->_respondHeader += request.getRequestHeader().at("Protocol") + " " + this->_listStatusCode.at(this->_code) + BREAK_LINE; 
 	if (this->_html)
 		this->_respondHeader += std::string("Content-Type: text/html") + BREAK_LINE;
 	else
@@ -196,8 +197,30 @@ void	HttpRespond::initHeader(HttpRequest const &request)
 	if (this->_bodyContent.size() > 0)
 		this->_respondHeader += "Content-Length: " + intToString(this->_bodyContent.size()) + BREAK_LINE;
 	if (this->_code == 405)
-		this->_respondHeader += std::string("Allow: GET, POST, DELETE") + BREAK_LINE; // TODO << check method in config.
+	{
+		this->_respondHeader += std::string("Allow: ");
+		for (std::vector<std::string>::const_iterator it = request.getMethodAllow().begin();
+			it != request.getMethodAllow().end();)
+		{
+			this->_respondHeader += *it++;
+			if (it != request.getMethodAllow().end())
+				this->_respondHeader += ", ";
+		}
+		this->_respondHeader += BREAK_LINE;
+
+	}
+	if (isMapKeyFound(request.getRequestHeader(), "Cookie"))
+	{
+		std::cout << "hellohello" << std::endl;
+		this->_respondHeader += this->_cookies.setCookieAndHeader(request.getRequestHeader().at("Cookie"));
+	}
+	// if (this->_code == 405)
+	// 	this->_respondHeader += std::string("Allow: GET, POST, DELETE") + BREAK_LINE; // TODO << check method in config.
 	this->_respondHeader += BREAK_LINE;
+	std::cout << "=======================now=======================" << std::endl;
+	for (std::map<std::string, std::string>::const_iterator it = HttpRespond::_cookies.getCookieList().begin();
+		it != HttpRespond::_cookies.getCookieList().end(); ++it)
+		std::cout << "|" << it->first << "|:|" << it->second << "|" << std::endl;
 }
 
 std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs)
@@ -231,8 +254,6 @@ std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs)
 	out << "\n=============================================================" << std::endl;
 	return (out);
 }
-
-// static int	getFileDiscriptor(HttpRequest &request, Config const &server);
 
 int	HttpRespond::readFile(std::string const &fileName)
 {
@@ -404,7 +425,6 @@ int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server, in
 		CommonGatewayInterface	cgi(server, request);
 
 		this->_bodyContent.clear();
-
 		this->_bodyContent = cgi.executeCGI(server, request);
 		if (cgi.getStatusCode() == 200)
 			this->_html = true;

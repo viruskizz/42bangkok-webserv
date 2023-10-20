@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Cookie Test Page</title>
+	<style>
+		html { color-scheme: light dark; }
+		body { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }
+		h1 { text-align: center; }
+		.container { max-width: 600px; margin: 0 auto; }
+	</style>
+</head>
+<body>
+	<h1>Cookie Test Page</h1>
+
+	<div class="container">
+		<h2>Cookie Information</h2>
+		<p>This page demonstrates how to set and delete cookies in a web browser.</p>
+
+		<h3>Set a Cookie</h3>
+		<p>Enter the name and value of the cookie you want to set, and click the "Set Cookie" button.</p>
+		<input type="text" id="cookieName" placeholder="Cookie Name">
+		<input type="text" id="cookieValue" placeholder="Cookie Value">
+		<button id="setCookieButton">Set Cookie</button>
+	</div>
+
+	<script>
+		document.getElementById("setCookieButton").addEventListener("click", function () {
+			// Set a cookie with the provided name and value
+			var cookieName = document.getElementById("cookieName").value;
+			var cookieValue = document.getElementById("cookieValue").value;
+			if (cookieName && cookieValue) {
+				document.cookie = cookieName + "=" + cookieValue;
+				alert("Cookie '" + cookieName + "' set successfully!");
+			} else {
+				alert("Please enter both the cookie name and value.");
+			}
+		});
+	</script>
+</body>
+</html>

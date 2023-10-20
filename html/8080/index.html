@@ -28,7 +28,7 @@
 				<tr>
 					<!-- *-> post-method -->
 					<td><b><a href="./postMethod.html" style="color: rgb(74, 62, 189);">post_method</a></b></td>
-					<td style="text-align: left;"">[server_name]:[port]/post_method.html</td>
+					<td style="text-align: left;"">[server_name]:[port]/postMethod.html</td>
 					<td>work</td>
 				</tr>
 				<tr>
@@ -40,22 +40,22 @@
 				<tr>
 					<!-- *-> file_uploading --> 
 					<td><b><a href="./uploadFile.html" style="color: rgb(74, 62, 189);">file_uploading</a></b></td>
-					<td td style="text-align: left;">[server_name]:[port]/upload.html</td>
+					<td td style="text-align: left;">[server_name]:[port]/uploadFile.html</td>
 					<td>work</td>
 				</tr>
 				<tr>
 					<!-- *-> cgi -->
 					<td style="color: rgb(74, 62, 189);"><b>CGI_python</a></b></td>
-					<td style="text-align: left;">[server_name]:[port]/cgi_bin/hello.py</td>
+					<td style="text-align: left;">[server_name]:[port]/hello.py</td>
 					<td>work</td></tr>
 					<tr><td style="color: rgb(74, 62, 189);"><b>CGI_bashScript</a></b></td>
-						<td style="text-align: left;">[server_name]:[port]/cgi_bin/goodbye.sh</td>
+						<td style="text-align: left;">[server_name]:[port]/goodbye.sh</td>
 						<td>work</td></tr>
 					</tr>
 					<tr>
 					<!-- *-> redirect_path -->
 					<td style="color: rgb(74, 62, 189);"><b>redirect_path</a></b></td>
-					<td style="text-align: left;">[server_name]:[port]/redirect/redirect.html</td>
+					<td style="text-align: left;">[server_name]:[port]/kapouet/redirect.html</td>
 					<td>work</td>
 				</tr>
 			</table>
@@ -77,7 +77,7 @@
 				<tr>
 					<!-- *-> post-method    -> not allow -->
 					<td><b><a href="localhost:8081/postMethod.html" style="color: rgb(74, 62, 189);">post_method</a></b></td>
-					<td style="text-align: left;">[server_name]:[another_port]/post_method.html</td>
+					<td style="text-align: left;">[server_name]:[another_port]/postMethod.html</td>
 					<td>405</td>
 				</tr>
 				<tr>
@@ -90,19 +90,19 @@
 					<!-- *-> file_uploading -> with client_size
 					* < client_size == work \ > client_size != work -->
 					<td><b><a href="localhost:8081/uploadFile.html" style="color: rgb(74, 62, 189);">file_uploading</a></b></td>
-					<td style="text-align: left;">[server_name]:[another_port]/upload.html</td>
+					<td style="text-align: left;">[server_name]:[another_port]/uploadFile.html</td>
 					<td>405</td>
 				</tr>
 				<tr>
 					<!-- *-> cgi -->
 					<td style="color: rgb(74, 62, 189);"><b>CGI_python</a></b></td>
-					<td style="text-align: left;">[server_name]:[port]/cgi_bin/hello.py</td>
+					<td style="text-align: left;">[server_name]:[another_port]hello.py</td>
 					<td>404</td>
 				</tr>
 				<tr>
 					<!-- *-> redirect_path -->
 					<td style="color: rgb(74, 62, 189);"><b>redirect_path</a></b></td>
-					<td style="text-align: left;">[server_name]:[port]/redirect/redirect.html</td>
+					<td style="text-align: left;">[server_name]:[anot_port]/kapouet/redirect.html</td>
 					<td>404</td>
 				</tr>
 			</table>

@@ -20,6 +20,7 @@
 # include "../conf/Config.hpp"
 # include "CommonGatewayInterface.hpp"
 # include "HttpRequest.hpp"
+# include "Cookie.hpp"
 
 class HttpRespond
 {
@@ -32,6 +33,7 @@ class HttpRespond
 		bool									_html;
 		static std::map<int, std::string> const	_listStatusCode;
 		static std::map<int, std::string> const	_statusCodeBody;
+		static Cookie							_cookies;
 
 		int			methodGET(HttpRequest const &request, Config const &server);
 		int			methodPOST(HttpRequest const &request, Config const &server, int bodyIndex);

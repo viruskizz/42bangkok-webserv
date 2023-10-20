@@ -28,7 +28,9 @@ SRCS 		=	srcs/main.cpp \
 				srcs/server/RequestBody.cpp \
 				srcs/server/Server.cpp \
 				srcs/server/HttpRespond.cpp \
-				srcs/server/CommonGatewayInterface.cpp
+				srcs/server/CommonGatewayInterface.cpp \
+				srcs/server/Cookie.cpp
+
 
 OBJS 		= $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 
