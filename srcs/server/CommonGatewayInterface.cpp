@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:43:02 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/20 15:26:33 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 20:48:07 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,11 +151,11 @@ std::string	 CommonGatewayInterface::executeWithBody(HttpRequest const &request,
 	std::string			content;
 	std::vector<string>	splited;
 	int					fd;
-	int					breakLine;
+	size_t				breakLine;
 
 	std::cout << "[Debug] body + cgi" << std::endl;
 	body.clear();
-	for (int index = 0; index < request.getRequestBody().size(); ++index)
+	for (size_t index = 0; index < request.getRequestBody().size(); ++index)
 	{
 		fd = pathExecutor(executePath, request.getRequestBody(), index);
 		if (fd == -1)
@@ -186,7 +186,7 @@ std::string	 CommonGatewayInterface::executeWithBody(HttpRequest const &request,
 		content.clear();
 		// content = "Transfer-Encoding: chunked\r\n";
 		breakLine = !findBreakLine(splited) ? 0 : findBreakLine(splited) - 1;
-		for (int i = 0; i < breakLine; ++i)
+		for (size_t i = 0; i < breakLine; ++i)
 			content += stringTrim(splited.at(i), "\r\n") + "\r\n";
 		if (!isStringFound(content, "Content-Length: "))
 			content += "Content-Length: " +  intToString(body.size()) + "\r\n";
@@ -215,7 +215,7 @@ std::string	CommonGatewayInterface::errnoCheck(void)
 
 static int	findBreakLine(std::vector<std::string> const &splited)
 {
-	int	count;
+	size_t	count;
 
 	count = 0;
 	while (count < splited.size())
@@ -384,11 +384,9 @@ void	CommonGatewayInterface::buildEnvironment(Config const &server, HttpRequest 
 static std::string	readFile(int fd)
 {
 	int			readByte;
-	int			contentSize;
 	char		*buffer;
 	std::string	content;
 
-	contentSize = 0;
 	buffer = new char[READSIZE + 1];
 	while (true)
 	{
@@ -398,7 +396,6 @@ static std::string	readFile(int fd)
 			break ;
 		for (int index = 0; index < readByte; ++index)
 			content.append(1, buffer[index]);
-		contentSize += readByte;
 	}
 	delete [] buffer;
 	return (content);
@@ -439,7 +436,7 @@ void	CommonGatewayInterface::initScriptURI(Config const &server, HttpRequest con
 			this->_serverPort = "80";
 	}
 	std::cout << "[Debug][initScript] pathSplited : fileIndex -> |" << fileIndex << "|" << std::endl;
-	for (int i = 0; i < pathSplited.size(); ++i)
+	for (size_t i = 0; i < pathSplited.size(); ++i)
 		std::cout << " -> |" << pathSplited[i] << "|" << std::endl;
 	this->_fileName = pathSplited[fileIndex];
 	this->_scriptName = request.getPath();

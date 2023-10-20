@@ -19,7 +19,6 @@ void	ServerConf::validate(void) const
 {
 	vector<StringMap>::const_iterator	location;
 	StringMap::const_iterator			locationMap;
-	bool								isFound;
 
 	std::cout << "[Debug][Begin] validate ()" << std::endl;
 	if (this->m_serverName.empty())

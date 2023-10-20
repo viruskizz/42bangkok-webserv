@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/20 10:46:29 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/20 12:58:54 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 20:50:50 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ Cookie::~Cookie(void)
 Cookie::Cookie(Cookie const &src)
 {
 	std::cout << "(Cookie) Copy constructor is called." << std::endl;
+	*this = src;
 }
 
 
@@ -82,12 +83,14 @@ std::string	Cookie::setCookieAndHeader(std::string const &cookieRequest)
 
 static bool	iskValidKeyLetter(std::string const &key)
 {
-	std::string invalidKey = "()<>@,;:\\\"/[]?={}";
-	int			index;
+	std::string invalidKey;
+	size_t		index;
 
+	invalidKey = "()<>@,;:\\\"/[]?={}";
+	index = 0;
 	while (index < key.size())
 	{
-		if (key.at(index) >= 0 && key.at(index) <= 32 || invalidKey.find(key.at(index)) != std::string::npos)
+		if ((key.at(index) >= 0 && key.at(index) <= 32) || invalidKey.find(key.at(index)) != std::string::npos)
 			return (false);
 		index++;
 	}

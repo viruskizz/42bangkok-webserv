@@ -7,13 +7,21 @@ Server *server;
 
 static void	signalHandle(int signalNumber)
 {
+	size_t index;
+
 	static_cast<void>(signalNumber);
-	for (std::vector<int>::iterator it = server->getServerSockets().begin();
-		it != server->getServerSockets().end(); ++it)
-		close (*it);
-	for (std::vector<struct addrinfo *>::iterator it = server->getAddress().end();
-		it != server->getAddress().end(); ++it)
-		freeaddrinfo(*it);
+	index = 0;
+	while (index < server->getServerSockets().size())
+		close (server->getServerSockets().at(index++));
+	index = 0;
+	while (index < server->getAddress().size())
+		freeaddrinfo(server->getAddress().at(index));
+	// for (std::vector<int>::iterator it = server->getServerSockets().begin();
+	// 	it != server->getServerSockets().end(); ++it)
+	// 	close (*it);
+	// for (std::vector<struct addrinfo *>::iterator it = server->getAddress().end();
+	// 	it != server->getAddress().end(); ++it)
+	// 	freeaddrinfo(*it);
 	// delete(configFile);
 	std::cout << "\nwebserv: Exit webserver is success. :)" << std::endl;
 	exit(EXIT_SUCCESS);
@@ -23,6 +31,7 @@ int	main(int argc, char **argv)
 {
 	Config	*configFile;
 
+	configFile = NULL;
 	signal(SIGINT, signalHandle);
 	// * checking the valid of argument [ Your program has to tacke a configuration file as argument, or use a default path ??] ;
 	if (argc == 1)
