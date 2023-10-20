@@ -91,3 +91,4 @@ int							hexadacimalToInt(const char *hexadecimal);
 bool						isStringFound(std::string const &string, std::string const &check);
 bool						isMapKeyFound(std::map<std::string, std::string> const &map, std::string const &key);
 bool						isStringInArray(char const **array, std::string const &string);
+void						exitWithError(char *errorMessage, int mode);

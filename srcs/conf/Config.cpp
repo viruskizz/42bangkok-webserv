@@ -14,8 +14,6 @@ Config::Config(std::string const & filename) : m_filename(filename), m_filedata(
 	setFiledata();
 	m_ifile.open(m_filename.c_str());
 	lineByLine(m_ifile, &Config::setConfig);
-
-	// this->printConfig();
 }
 
 Config::~Config() {
@@ -66,7 +64,7 @@ void Config::setFiledata() {
 		file.close();
 	}
 	else {
-		throw Config::FileNotFoundException();
+		exitWithError((char *)"webserv: Error: File not found or not enough permission to open.", EE_NONE);//throw Config::FileNotFoundException();
 	}
 }
 
@@ -76,7 +74,7 @@ void Config::setConfig(std::string & key, std::string & val) {
 	}
 	if (key == "server") {
 		if (val != "{") {
-			throw Config::InvalidConfigException();
+			exitWithError((char *)"webserv: Error: Configuration is invalid.", EE_NONE);//throw Config::InvalidConfigException();
 		}
 		ServerConf *serverConf = new ServerConf(this, m_ifile);
 		m_servers.push_back(serverConf);
@@ -91,7 +89,7 @@ void Config::lineByLine(std::ifstream & ifile, void (Config::*func)(string & key
 		if (value.size() == 0) { continue; }
 		if (value.size() < 2) {
 			std::cout << "Error Line: " << line << std::endl;
-			throw Config::InvalidConfigException();
+			exitWithError((char *)"webserv: Error: Configuration is invalid.", EE_NONE);//throw Config::InvalidConfigException();
 		}
 		string key = value[0];
 		string val = value[1];

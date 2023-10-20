@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:28:18 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/20 06:55:00 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 21:46:56 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -357,4 +357,13 @@ bool	isStringInArray(char const **array, std::string const &string)
 		++index;
 	}
 	return (false);
+}
+
+void	exitWithError(char *errorMessage, int mode)
+{
+	if (mode == EE_PERR)
+		perror(errorMessage);
+	else if (mode == EE_NONE)
+		std::cerr << errorMessage << std::endl;
+	exit(EXIT_FAILURE);
 }
