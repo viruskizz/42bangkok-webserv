@@ -197,13 +197,7 @@ void	HttpRespond::initHeader(HttpRequest const &request)
 		std::cout << "hellohello" << std::endl;
 		this->_respondHeader += this->_cookies.setCookieAndHeader(request.getRequestHeader().at("Cookie"));
 	}
-	// if (this->_code == 405)
-	// 	this->_respondHeader += std::string("Allow: GET, POST, DELETE") + BREAK_LINE; // TODO << check method in config.
 	this->_respondHeader += BREAK_LINE;
-	std::cout << "=======================now=======================" << std::endl;
-	for (std::map<std::string, std::string>::const_iterator it = HttpRespond::_cookies.getCookieList().begin();
-		it != HttpRespond::_cookies.getCookieList().end(); ++it)
-		std::cout << "|" << it->first << "|:|" << it->second << "|" << std::endl;
 }
 
 std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs)

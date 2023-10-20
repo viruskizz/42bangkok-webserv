@@ -27,9 +27,7 @@ void Server::init(Config const &configFile)
 		m_hint.ai_flags = AI_PASSIVE;
 
 		errorNumber = getaddrinfo(
-			// configFile.getServers().at(index)->getServerName().c_str(),
-			"127.0.0.1",
-			// 0,
+			0,
 			configFile.getServers().at(index)->getListen().c_str(), &m_hint, &m_addrList);
 		if (errorNumber != 0)
 			exitWithError(const_cast<char *>(gai_strerror(errorNumber)), EE_PERR);
@@ -67,13 +65,9 @@ void Server::init(Config const &configFile)
 void Server::start(Config const &configFile)
 {
 	int 			maxSocketFd;
-	struct timeval	timeOut;
 	fd_set			currentSocket;
 	fd_set			readySocket;
 
-	timeOut.tv_sec = 1;
-	timeOut.tv_usec = 0;
-	(void) timeOut;
 	FD_ZERO(&currentSocket);
 	for (size_t i = 0; i < m_serverSockets.size(); ++i)
 		FD_SET(m_serverSockets[i], &currentSocket);
@@ -82,7 +76,6 @@ void Server::start(Config const &configFile)
 	{
 		readySocket = currentSocket;
 		std::cout << "********** Waiting for Client Request **********" << std::endl;
-		// if (select(maxSocketFd, &readySocket, NULL, NULL, &timeOut) < 0)
 		if (select(maxSocketFd, &readySocket, NULL, NULL, NULL) < 0)
 			exitWithError((char *)"webserve: ERROR", EE_PERR);
 		std::cout << "********** Client Sent Some Request **********" << std::endl;	
@@ -130,7 +123,6 @@ void Server::start(Config const &configFile)
 							HttpRespond respond(socket, request, configFile, 0);
 							respond.sendRepond(socket);
 						}
-						
 					}
 					close(socket);
 					FD_CLR(socket, &currentSocket);

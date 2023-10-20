@@ -20,7 +20,6 @@ void	ServerConf::validate(void) const
 	vector<StringMap>::const_iterator	location;
 	StringMap::const_iterator			locationMap;
 
-	std::cout << "[Debug][Begin] validate ()" << std::endl;
 	if (this->m_serverName.empty())
 		exitWithError((char *)"webserv : config-ERROR: The server-config need server name.", EE_NONE);//throw "webserv : config-ERROR: The server-config need server name.";
 	if (this->m_listen.empty())
@@ -60,7 +59,6 @@ void	ServerConf::validate(void) const
 			++location;
 		}
 	}
-	std::cout << "[Debug][End] validate ()" << std::endl;
 }
 
 ServerConf::~ServerConf() {

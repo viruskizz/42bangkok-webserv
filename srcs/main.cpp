@@ -16,11 +16,9 @@ static void	signalHandle(int signalNumber)
 		close (server->getServerSockets().at(index++));
 	index = 0;
 	while (index < server->getAddress().size())
-		freeaddrinfo(server->getAddress().at(index));
-	// if (configFile)
-	// 	delete configFile;
-	// if (server)
-	// 	delete server;
+		freeaddrinfo(server->getAddress().at(index++));
+	delete configFile;
+	delete server;
 	std::cout << "\nwebserv: Exit webserver is success. :)" << std::endl;
 	exit(EXIT_SUCCESS);
 }
@@ -40,7 +38,5 @@ int	main(int argc, char **argv)
 	configFile->printConfig(); // * [Debug];
 	server->init(*configFile);
 	server->start(*configFile);
-	delete configFile;
-	delete server;
 	return (EXIT_SUCCESS);
 }
