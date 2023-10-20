@@ -9,13 +9,28 @@ RESET = "\033[0m"
 BUILD_DIR	= build
 SRC_DIR		= srcs
 # SRCS 		= $(shell find $(SRC_DIR) -name '*.cpp')
+# SRCS 		=	srcs/main.cpp \
+# 				srcs/conf/Config.cpp \
+# 				srcs/conf/ServerConf.cpp \
+# 				srcs/utils/StringUtil.cpp \
+# 				srcs/utils/WebservUtil.cpp \
+# 				srcs/server/Server.cpp \
+# 				srcs/server/RequestHeader.cpp \
+# 				srcs/server/ServerRespond.cpp
+
+# For dev config
 SRCS 		=	srcs/main.cpp \
 				srcs/conf/Config.cpp \
 				srcs/conf/ServerConf.cpp \
 				srcs/utils/StringUtil.cpp \
-				srcs/RequestHeader.cpp \
-				srcs/webserv_util1.cpp \
-				srcs/ServerRespond.cpp
+				srcs/utils/WebservUtil.cpp \
+				srcs/server/HttpRequest.cpp \
+				srcs/server/RequestBody.cpp \
+				srcs/server/Server.cpp \
+				srcs/server/HttpRespond.cpp \
+				srcs/server/CommonGatewayInterface.cpp \
+				srcs/server/Cookie.cpp
+
 
 OBJS 		= $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 
@@ -31,6 +46,15 @@ $(OBJS): $(BUILD_DIR)/%.o: %.cpp
 $(NAME): $(OBJS)
 	$(CXX) $(CPPFLAGS) $(OBJS) $(INCLUDES) -o $(NAME)
 	@echo file: $(YELLOW)$(NAME)$(RESET) has created
+	
+	# @mkdir -p /var/www/webserv
+	# @echo	"<!DOCTYPE html>\n"
+	# 		"<html>\n"
+	# 		"\t<body>\n"
+	# 		"\t\t<center>\n"
+	# 		"\t\t<h1>Welcome to Wevserv!</h1><br>\n" > /var/www/webserv/index.html
+
+	# @mkdir
 
 clean:
 	rm -rf $(BUILD_DIR)

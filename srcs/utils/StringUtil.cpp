@@ -41,11 +41,48 @@ std::vector<std::string> StringUtil::split(std::string const &str, std::string c
 		word.clear();
 		while (str[i] && findStrChar(delimeter, str[i]) == -1)
 			word += str[i++];
-		result.push_back(word);
+		if (!word.empty()) // * change
+			result.push_back(word);
 	}
 	return (result);
 }
 
+// trim from start
+std::string StringUtil::ltrim(std::string const & s) {
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && isspace(*it))
+        it++;
+	std::string::const_reverse_iterator rit = s.rbegin();
+    return std::string(it, rit.base());
+}
+
+// trim from end
+std::string StringUtil::rtrim(std::string const & s) {
+	std::string::const_iterator it = s.begin();
+    std::string::const_reverse_iterator rit = s.rbegin();
+    while (rit.base() != it && isspace(*rit))
+        rit++;
+    return std::string(it, rit.base());
+}
+
+// trim from both ends
+std::string StringUtil::trim(std::string const & s) {
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && isspace(*it))
+        it++;
+    std::string::const_reverse_iterator rit = s.rbegin();
+    while (rit.base() != it && isspace(*rit))
+        rit++;
+    return std::string(it, rit.base());
+}
+
+std::string StringUtil::space(size_t size) {
+	std::string sp = "";
+	for (int i = 0; i < size; i++) {
+		sp += " ";
+	}
+	return sp;
+}
 
 static int	findStrChar(std::string const & str, char find) {
 	int i;

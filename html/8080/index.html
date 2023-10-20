@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Welcome to Webserv!</title>
+		<style>
+			html { color-scheme: light dark; }
+			body { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }
+			a { text-decoration: none;;}
+			table, th, td { border:1px solid black; border-collapse: collapse; }
+			td { text-align: center;}
+		</style>
+	</head>
+	<body>
+		<h1>Welcome to Webserv!</h1>
+		<p>
+		If you see this page, the webserv is successfully installed and working.<br>
+		You can test your own config by <b>$> ./webserv [config_file]</b></p>
+		<p>
+			<!-- * server 1 -->
+			<table>
+			<b style="size: 40px;">First_Server</b> :: localhost:8080
+			<table style="width: 100%;">
+				<tr>
+					<th style="width: 27%;">feature</th>
+					<th>URL</th>
+					<th style="width: 10%;">result</th>
+				</tr>
+				<tr>
+					<!-- *-> post-method -->
+					<td><b><a href="./postMethod.html" style="color: rgb(74, 62, 189);">post_method</a></b></td>
+					<td style="text-align: left;"">[server_name]:[port]/postMethod.html</td>
+					<td>work</td>
+				</tr>
+				<tr>
+					<!-- *-> list_directory -->
+					<td style="color: rgb(74, 62, 189);"><b>list_directory</a></b></td>
+					<td td style="text-align: left;">[server_name]:[port]//</td>
+					<td>work</td>
+				</tr>
+				<tr>
+					<!-- *-> file_uploading --> 
+					<td><b><a href="./uploadFile.html" style="color: rgb(74, 62, 189);">file_uploading</a></b></td>
+					<td td style="text-align: left;">[server_name]:[port]/uploadFile.html</td>
+					<td>work</td>
+				</tr>
+				<tr>
+					<!-- *-> cgi -->
+					<td style="color: rgb(74, 62, 189);"><b>CGI_python</a></b></td>
+					<td style="text-align: left;">[server_name]:[port]/hello.py</td>
+					<td>work</td></tr>
+					<tr><td style="color: rgb(74, 62, 189);"><b>CGI_bashScript</a></b></td>
+						<td style="text-align: left;">[server_name]:[port]/goodbye.sh</td>
+						<td>work</td></tr>
+					</tr>
+					<tr>
+					<!-- *-> redirect_path -->
+					<td style="color: rgb(74, 62, 189);"><b>redirect_path</a></b></td>
+					<td style="text-align: left;">[server_name]:[port]/kapouet/redirect.html</td>
+					<td>work</td>
+				</tr>
+			</table>
+			<!-- * server 2 -->
+			<br><b style="size: 40px;">Second_Server</b> :: localhost:8081<br>
+			<table>
+			<table style="width: 100%;">
+				<tr>
+					<th style="width: 27%;">feature</th>
+					<th>URL</th>
+					<th style="width: 10%;">result</th>
+				</tr>
+				<tr>
+					<!-- * index_page         -> show 8081 page -->
+					<td><b><a href="localhost:8081" style="color: rgb(74, 62, 189);">index.html</a></b></td>
+					<td style="text-align: left;">[server_name]:[another_port]/</td>
+					<td>work</td>
+				</tr>
+				<tr>
+					<!-- *-> post-method    -> not allow -->
+					<td><b><a href="localhost:8081/postMethod.html" style="color: rgb(74, 62, 189);">post_method</a></b></td>
+					<td style="text-align: left;">[server_name]:[another_port]/postMethod.html</td>
+					<td>405</td>
+				</tr>
+				<tr>
+					<!-- *-> list_directory == work -->
+					<td style="color: rgb(74, 62, 189);"><b>list_directory</a></b></td>
+					<td style="text-align: left;">[server_name]:[another_port]//</td>
+					<td>404</td>
+				</tr>
+				<tr>
+					<!-- *-> file_uploading -> with client_size
+					* < client_size == work \ > client_size != work -->
+					<td><b><a href="localhost:8081/uploadFile.html" style="color: rgb(74, 62, 189);">file_uploading</a></b></td>
+					<td style="text-align: left;">[server_name]:[another_port]/uploadFile.html</td>
+					<td>405</td>
+				</tr>
+				<tr>
+					<!-- *-> cgi -->
+					<td style="color: rgb(74, 62, 189);"><b>CGI_python</a></b></td>
+					<td style="text-align: left;">[server_name]:[another_port]hello.py</td>
+					<td>404</td>
+				</tr>
+				<tr>
+					<!-- *-> redirect_path -->
+					<td style="color: rgb(74, 62, 189);"><b>redirect_path</a></b></td>
+					<td style="text-align: left;">[server_name]:[anot_port]/kapouet/redirect.html</td>
+					<td>404</td>
+				</tr>
+			</table>
+		</p>
+		<p><em>Thank you for your kindness of testing our webserv :)</em></p>
+	</body>
+</html>

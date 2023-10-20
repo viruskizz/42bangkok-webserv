@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Welcome to Webserv!</title>
+		<style>
+			html { color-scheme: light dark; }
+			body { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }
+			a { text-decoration: none;;}
+			table, th, td { border:1px solid black; border-collapse: collapse; }
+			td { text-align: center;}
+		</style>
+	</head>
+	<body>
+		<center><h1>Welcome to Webserv ! :: 8081</h1></center>
+		<p>
+		If you see this page, the webserv is successfully installed and working.<br>
+		You can test your own config by <b>$> ./webserv [config_file]</b></p>
+		<img src="./picture.jpg" alt="spiderman point to spiderman meme" style="width: 100%;">
+			<p>
+				<b style="size: 40px;">Second_Server</b> :: localhost:8081<br>
+				<table>
+				<table style="width: 100%;">
+					<tr>
+						<th style="width: 27%;">feature</th>
+						<th>URL</th>
+						<th style="width: 10%;">result</th>
+					</tr>
+					<tr>
+						<td><b><a href="./postMethod.html" style="color: rgb(74, 62, 189);">post_method</a></b></td>
+						<td style="text-align: left;">[server_name]:[another_port]/postMethod.html</td>
+						<td>405</td>
+					</tr>
+					<tr>
+						<td style="color: rgb(74, 62, 189);"><b>list_directory</a></b></td>
+						<td style="text-align: left;">[server_name]:[another_port]//</td>
+						<td>404</td>
+					</tr>
+					<tr>
+						<td><b><a href="./uploadFile.html" style="color: rgb(74, 62, 189);">file_uploading</a></b></td>
+						<td style="text-align: left;">[server_name]:[another_port]/uploadFile.html</td>
+						<td>405</td>
+					</tr>
+					<tr>
+						<td style="color: rgb(74, 62, 189);"><b>CGI</a></b></td>
+						<td style="text-align: left;">[server_name]:[another_port]/hello.py</td>
+						<td>404</td>
+					</tr>
+					<tr>
+						<td style="color: rgb(74, 62, 189);"><b>redirect_path</a></b></td>
+						<td style="text-align: left;">[server_name]:[anot_port]/kapouet/redirect.html</td>
+						<td>404</td>
+					</tr>
+				</table>
+			</p>
+		<p><em>Thank you for your kindness of testing our webserv :)</em></p>
+	</body>
+</html>
