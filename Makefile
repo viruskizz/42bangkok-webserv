@@ -1,6 +1,6 @@
 NAME = webserv
 CXX = c++ -g
-# CPPFLAGS = -Wall -Werror -Wextra -std=c++98
+CPPFLAGS = -Wall -Werror -Wextra -std=c++98
 CPPFLAGS = -std=c++98
 
 YELLOW ="\033[0;33m"
@@ -47,15 +47,6 @@ $(NAME): $(OBJS)
 	$(CXX) $(CPPFLAGS) $(OBJS) $(INCLUDES) -o $(NAME)
 	@echo file: $(YELLOW)$(NAME)$(RESET) has created
 	
-	# @mkdir -p /var/www/webserv
-	# @echo	"<!DOCTYPE html>\n"
-	# 		"<html>\n"
-	# 		"\t<body>\n"
-	# 		"\t\t<center>\n"
-	# 		"\t\t<h1>Welcome to Wevserv!</h1><br>\n" > /var/www/webserv/index.html
-
-	# @mkdir
-
 clean:
 	rm -rf $(BUILD_DIR)
 
