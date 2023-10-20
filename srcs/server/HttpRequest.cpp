@@ -206,6 +206,9 @@ std::vector<std::string>::iterator	HttpRequest::requestBodyPaser(
 		if (this->_requestHeader.find("Boundary") != this->_requestHeader.end()
 			&& it->find(this->_requestHeader["Boundary"]) != std::string::npos)
 			++it;
+		if (it == requestLine.end()) {
+			break;
+		}
 		if (*it == "\r")
 			++it;
 		while (this->_requestHeader["Content-Type"] == "multipart/form-data"
@@ -248,7 +251,6 @@ std::vector<std::string>::iterator	HttpRequest::requestBodyPaser(
 
 std::vector<std::string>::iterator	HttpRequest::requestBodyChunkPaser(std::vector<std::string>::iterator it, std::vector<std::string> &requestLine)
 {
-
 	bool 		isGetBody;
 	bool 		isGetLength;
 	RequestBody	body;
@@ -296,7 +298,6 @@ void	HttpRequest::initHttpRequest(Config const &server)
 {
 	std::string pathURL;
 	std::vector<std::map<std::string, std::string> >::const_iterator	it;
-
 
 	std::cout << "[Debug] - initPath() -" << std::endl;
 	std::cout << "HOST: " << this->_requestHeader.at("Host") << std::endl;
