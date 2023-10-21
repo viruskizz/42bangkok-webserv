@@ -54,10 +54,7 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 	else
 		this->_code = 405;
 	if (!this->_cgi)
-	{
-		// this->setErrorPage(request, server);
 		this->initHeader(request);
-	}
 }
 
 void	HttpRespond::commondGatewayInterface(Config const &server, HttpRequest const &request)
@@ -72,22 +69,6 @@ void	HttpRespond::commondGatewayInterface(Config const &server, HttpRequest cons
 		this->_cgi = true;
 		this->_code = 200;
 	}
-}
-
-void	HttpRespond::setErrorPage(HttpRequest const &request, Config const &server)
-{
-	if (this->_code == 200)
-		return ;
-	if (request.getServerNum() < (int) server.getServers().size()
-		&& server.getServers().at(request.getServerNum())->getReturnPage().find(intToString(this->_code))
-		!= server.getServers().at(request.getServerNum())->getReturnPage().end())
-	{
-		if (this->readFile(server.getServers().at(request.getServerNum())->getReturnPage().at(intToString(this->_code))) != 200)
-			this->_bodyContent = this->_statusCodeBody.at(this->_code);
-	}
-	else
-		this->_bodyContent = this->_statusCodeBody.at(this->_code);
-	this->_html = true;
 }
 
 HttpRespond::HttpRespond(HttpRespond const &src)
