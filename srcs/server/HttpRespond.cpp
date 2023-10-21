@@ -40,18 +40,7 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 		&& (int) request.getRequestBody().at(bodyIndex).getContent().size() > request.getMaxBody())
 		this->_code = 413;
 	else if (!request.getFileCGI().empty())
-	{
-		CommonGatewayInterface	cgi(server, request);
-
-		this->_bodyContent.clear();
-		this->_bodyContent = cgi.executeCGI(server, request);
-		this->_code = cgi.getStatusCode();
-		if (cgi.getStatusCode() == 200)
-		{
-			this->_cgi = true;
-			this->_code = 200;
-		}
-	}
+		this->commondGatewayInterface(server, request);
 	else if (request.getRequestHeader().at("Method") == "GET" && findStringInVector(request.getMethodAllow(), "GET"))
 		this->_code = methodGET(request, server);
 	else if (request.getRequestHeader().at("Method") == "POST" && findStringInVector(request.getMethodAllow(), "POST"))
@@ -66,6 +55,20 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 	{
 		this->setErrorPage(request, server);
 		this->initHeader(request);
+	}
+}
+
+void	HttpRespond::commondGatewayInterface(Config const &server, HttpRequest const &request)
+{
+	CommonGatewayInterface	cgi(server, request);
+
+	this->_bodyContent.clear();
+	this->_bodyContent = cgi.executeCGI(server, request);
+	this->_code = cgi.getStatusCode();
+	if (cgi.getStatusCode() == 200)
+	{
+		this->_cgi = true;
+		this->_code = 200;
 	}
 }
 

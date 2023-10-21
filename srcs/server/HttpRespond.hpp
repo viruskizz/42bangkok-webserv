@@ -39,6 +39,7 @@ class HttpRespond
 		int			methodPOSTUpload(HttpRequest const &request, Config const &server, int bodyIndex);
 		int			methodDELETE(HttpRequest const &request);
 		int			methodPUT(HttpRequest const &request);
+		void		commondGatewayInterface(Config const &server, HttpRequest const &request);
 
 		void		initHeader(HttpRequest const &request);
 		void		setErrorPage(HttpRequest const &request, Config const &server);
