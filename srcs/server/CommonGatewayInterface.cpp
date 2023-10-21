@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:43:02 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/21 13:28:18 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/21 13:34:18 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,8 +297,6 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 		return (-1);
 	else if (!pid)
 	{
-		// this->_environment.push_back("CONTENT_LENGTH: " + intToString(len));
-		// this->_environment.push_back("CONTENT_TYPE: test/file");
 		inputFd = open(INFILE_NAME, O_RDONLY);
 		if (inputFd < 0 || dup2(inputFd, STDIN_FILENO) == -1 || dup2(fd[1], STDOUT_FILENO) == -1
 			|| close(fd[0]) == -1 || close(fd[1]) == -1 || close(inputFd) == -1)
