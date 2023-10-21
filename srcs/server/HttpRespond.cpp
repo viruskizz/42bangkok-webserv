@@ -217,9 +217,9 @@ std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs)
 
 int	HttpRespond::readFile(std::string const &fileName)
 {
-	int				readByte;
-	char			*buffer;
-	int				fd;
+	int		readByte;
+	char	*buffer;
+	int		fd;
 
 	fd = open(fileName.c_str(), O_RDONLY);
 	if (fd < 0)

@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:43:02 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/21 09:45:18 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/21 10:25:08 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,14 +71,6 @@ int	CommonGatewayInterface::getStatusCode(void) const
 	return (this->_cgiStatus);
 }
 
-// static void	writeFile(std::string const &name, std::string const content)
-// {
-// 	std::ofstream	file;
-// 	file.open(name.c_str(), std::ofstream::trunc | std::ofstream::out);
-// 	file << content;
-// 	file.close();
-// }
-
 void	CommonGatewayInterface::printValue(void) const
 {
 	std::cout << "=========================================================" << std::endl;
@@ -116,8 +108,6 @@ std::string	CommonGatewayInterface::executeCGI(Config const &server, HttpRequest
 	int			fd;
 	char		**executePath;
 
-	// if (this->_cgiStatus != 200)
-	// 	return (content);
 	executePath = getExecutorPath(getExecutorLanguage(server, request));
 	if (!executePath)
 	{
@@ -136,7 +126,6 @@ std::string	CommonGatewayInterface::executeCGI(Config const &server, HttpRequest
 		content = this->executeWithBody(request, executePath);
 	if (!request.getFileCGI().empty() && !checkCGIHeader(content, request))
 		this->_cgiStatus = 500;
-	// writeFile("./result.txt", content);
 	return (content);
 }
 
@@ -162,34 +151,19 @@ std::string	 CommonGatewayInterface::executeWithBody(HttpRequest const &request,
 			body += splited.at(breakLine++);
 			if (breakLine >= splited.size())
 				break ;
-			// body += "\n";
 		}
-		// body += splited.at(splited.size() - 1);
-		// std::cout << "[============================]" << std::endl;
-		// std::cout << body << std::endl;
-		// if (i != request.getRequestBody().size() - 1)
-		// 	body += "8000\r\n" + splited.at(splited.size() - 1) + "\r\n";
-		// else
-		// 	body += "6100\r\n" + splited.at(splited.size() - 1) + "\r\n0\r\n";
-			// body += splited.at(splited.size() - 1);
-		// std::cout << "-> " << content << std::endl;
 		close(fd);
 	}
 	if (!request.getFileCGI().empty() && splited.size())
 	{
 		content.clear();
-		// content = "Transfer-Encoding: chunked\r\n";
 		breakLine = !findBreakLine(splited) ? 0 : findBreakLine(splited) - 1;
 		for (size_t i = 0; i < breakLine; ++i)
 			content += stringTrim(splited.at(i), "\r\n") + "\r\n";
 		if (!isStringFound(content, "Content-Length: "))
 			content += "Content-Length: " +  intToString(body.size()) + "\r\n";
 		content += "\r\n";
-		// content += "1000000\r\n";
 		content += body + "\r\n";
-		// content += "<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<title>hello</title>\n\t</head>\n\t<body>\n\t\t" + body + "\n\t</body>\n</html>\r\n";
-		// content += "0\r\n\r\n0\r\n\r\n";
-		// writeFile("./log.txt", content);
 	}
 	return (content);
 }
@@ -285,8 +259,6 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 	inputFile.open(INFILE_NAME, std::ofstream::trunc | std::ofstream::out);
 	if (!inputFile.is_open())
 		return (-1);
-	// std::string content;
-	// content.clear();
 	if (index != -1)
 		inputFile << requestBody.at(index).getContent();
 	inputFile.close();
@@ -297,8 +269,6 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 		return (-1);
 	else if (!pid)
 	{
-		// this->_environment.push_back("CONTENT_LENGTH: " + intToString(len));
-		// this->_environment.push_back("CONTENT_TYPE: test/file");
 		inputFd = open(INFILE_NAME, O_RDONLY);
 		if (inputFd < 0 || dup2(inputFd, STDIN_FILENO) == -1 || dup2(fd[1], STDOUT_FILENO) == -1
 			|| close(fd[0]) == -1 || close(fd[1]) == -1 || close(inputFd) == -1)
