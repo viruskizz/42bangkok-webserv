@@ -1,7 +1,7 @@
 NAME = webserv
 CXX = c++ -g
-# CPPFLAGS = -Wall -Werror -Wextra -std=c++98
-CPPFLAGS = -std=c++98
+CPPFLAGS = -Wall -Werror -Wextra -std=c++98
+# CPPFLAGS = -std=c++98
 
 YELLOW ="\033[0;33m"
 RESET = "\033[0m"
@@ -9,14 +9,6 @@ RESET = "\033[0m"
 BUILD_DIR	= build
 SRC_DIR		= srcs
 # SRCS 		= $(shell find $(SRC_DIR) -name '*.cpp')
-# SRCS 		=	srcs/main.cpp \
-# 				srcs/conf/Config.cpp \
-# 				srcs/conf/ServerConf.cpp \
-# 				srcs/utils/StringUtil.cpp \
-# 				srcs/utils/WebservUtil.cpp \
-# 				srcs/server/Server.cpp \
-# 				srcs/server/RequestHeader.cpp \
-# 				srcs/server/ServerRespond.cpp
 
 # For dev config
 SRCS 		=	srcs/main.cpp \
@@ -46,15 +38,6 @@ $(OBJS): $(BUILD_DIR)/%.o: %.cpp
 $(NAME): $(OBJS)
 	$(CXX) $(CPPFLAGS) $(OBJS) $(INCLUDES) -o $(NAME)
 	@echo file: $(YELLOW)$(NAME)$(RESET) has created
-	
-	# @mkdir -p /var/www/webserv
-	# @echo	"<!DOCTYPE html>\n"
-	# 		"<html>\n"
-	# 		"\t<body>\n"
-	# 		"\t\t<center>\n"
-	# 		"\t\t<h1>Welcome to Wevserv!</h1><br>\n" > /var/www/webserv/index.html
-
-	# @mkdir
 
 clean:
 	rm -rf $(BUILD_DIR)

@@ -16,8 +16,10 @@ private:
 	int				m_socketFd;
 	std::vector<int>	m_serverSockets;
 	std::vector<struct addrinfo *> m_address;
-	// int				m_maxSocketFd;
 	Config config;
+
+	bool	cilentAccept(fd_set &currentSocket, int &maxSocketFd, int socket);
+	void	sentRespond(Config const &configFile, fd_set &currentSocket, int socket);
 
 public:
 	Server();
@@ -26,7 +28,6 @@ public:
 	std::vector<int> getServerSockets(void);
 	std::vector<struct addrinfo *> getAddress(void);
 
-	void static exitWithError(char *errorMessage, int mode);
 	void init(Config const &configFile);
 	void start(Config const &configFile);
 };

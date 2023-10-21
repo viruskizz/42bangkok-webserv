@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 20:28:18 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/20 06:55:00 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/20 21:46:56 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ std::string	stringTrim(std::string &string, std::string const &delimeters)
 	result = "";
 	if (string == "" || delimeters == "")
 		return (string);
-	for (int i = 0; i < string.length(); ++i)
+	for (size_t i = 0; i < string.length(); ++i)
 	{
 		if (delimeters.find(string[i]) == std::string::npos)
 		{
@@ -201,7 +201,7 @@ char	*stringDuplicate(char *string)
 char	*stringDuplicate(std::string const &string)
 {
 	char	*result;
-	int		index;
+	size_t		index;
 
 	index = 0;
 	result = new char[string.size() + 1];
@@ -256,7 +256,7 @@ char	**stringAdd(char **strings, char *string, int mode)
 char	*stringTosChar(std::string const &string)
 {
 	char	*result;
-	int		index;
+	size_t	index;
 
 	index = 0;
 	if (string.empty())
@@ -274,7 +274,7 @@ char	*stringTosChar(std::string const &string)
 char	**vectorStringToChar(std::vector<std::string> vector)
 {
 	char	**result;
-	int		index;
+	size_t	index;
 
 	index = 0;
 	result = new char * [vector.size() + 1];
@@ -357,4 +357,13 @@ bool	isStringInArray(char const **array, std::string const &string)
 		++index;
 	}
 	return (false);
+}
+
+void	exitWithError(char *errorMessage, int mode)
+{
+	if (mode == EE_PERR)
+		perror(errorMessage);
+	else if (mode == EE_NONE)
+		std::cerr << errorMessage << std::endl;
+	exit(EXIT_FAILURE);
 }

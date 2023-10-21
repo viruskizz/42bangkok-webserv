@@ -7,7 +7,6 @@ using std::vector;
 using std::map;
 
 typedef map<string, string> StringMap;
-// typedef StringUtil SUtil;
 
 class ServerConf;
 
@@ -46,14 +45,14 @@ public:
 	vector<ServerConf*> const &getServers(void) const;
 
 	void printConfig(void) const;
-	class FileNotFoundException: public std::exception {
-		public:
-			virtual const char* what() const throw() { return "File not found or not enough permission to open"; }
-	};
-	class InvalidConfigException: public std::exception {
-		public:
-			virtual const char* what() const throw() { return "Configuration is invalid"; }
-	};
+	// class FileNotFoundException: public std::exception {
+	// 	public:
+	// 		virtual const char* what() const throw() { return "File not found or not enough permission to open"; }
+	// };
+	// class InvalidConfigException: public std::exception {
+	// 	public:
+	// 		virtual const char* what() const throw() { return "Configuration is invalid"; }
+	// };
 };
 
 std::ostream & operator << (std::ostream &, Config const &);

@@ -21,6 +21,9 @@
 # include <sys/signal.h>
 # include <netinet/in.h>
 # include "./utils/StringUtil.hpp"
+# include <ctype.h>
+# include <stddef.h>
+# include <limits>
 
 using std::string;
 using std::vector;
@@ -31,12 +34,9 @@ typedef map<string, string> StringMap;
 # define C_YELLOW "\033[0;33m"
 # define C_RESET "\033[0m"
 
-// #include <iostream>
 # define BREAK_LINE (char *)"\r\n"
 # define READSIZE 111111111
 # define HTTP (char *)"HTTP/1.1 "
-# define ROOT (char *)"/Users/shivarakii/Documents/42_coding/webserv_42/html"
-// # define ROOT (char *)"/home/araiva/42bangkok/webserv/html"
 /*
 * marco for exitWithError() EE_PERR with perror() | EE_NONE just string*/
 # define EE_PERR 1
@@ -88,3 +88,4 @@ int							hexadacimalToInt(const char *hexadecimal);
 bool						isStringFound(std::string const &string, std::string const &check);
 bool						isMapKeyFound(std::map<std::string, std::string> const &map, std::string const &key);
 bool						isStringInArray(char const **array, std::string const &string);
+void						exitWithError(char *errorMessage, int mode);

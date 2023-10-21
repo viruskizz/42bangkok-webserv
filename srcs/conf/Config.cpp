@@ -14,18 +14,15 @@ Config::Config(std::string const & filename) : m_filename(filename), m_filedata(
 	setFiledata();
 	m_ifile.open(m_filename.c_str());
 	lineByLine(m_ifile, &Config::setConfig);
-
-	// this->printConfig();
 }
 
 Config::~Config() {
-	std::cout << "[Config] destructor is called" << std::endl;
+	// std::cout << "[Config] destructor is called" << std::endl;
 	for (std::vector<ServerConf*>::iterator it = m_servers.begin();
 		it != m_servers.end();) {
 		delete *it;
 		m_servers.erase(it);
 	}
-	std::cout << "size: " << m_servers.size() << std::endl;
 }
 
 string const & Config::getFilename() const {
@@ -66,7 +63,7 @@ void Config::setFiledata() {
 		file.close();
 	}
 	else {
-		throw Config::FileNotFoundException();
+		exitWithError((char *)"webserv: Error: File not found or not enough permission to open.", EE_NONE);//throw Config::FileNotFoundException();
 	}
 }
 
@@ -76,7 +73,7 @@ void Config::setConfig(std::string & key, std::string & val) {
 	}
 	if (key == "server") {
 		if (val != "{") {
-			throw Config::InvalidConfigException();
+			exitWithError((char *)"webserv: Error: Configuration is invalid.", EE_NONE);//throw Config::InvalidConfigException();
 		}
 		ServerConf *serverConf = new ServerConf(this, m_ifile);
 		m_servers.push_back(serverConf);
@@ -91,7 +88,7 @@ void Config::lineByLine(std::ifstream & ifile, void (Config::*func)(string & key
 		if (value.size() == 0) { continue; }
 		if (value.size() < 2) {
 			std::cout << "Error Line: " << line << std::endl;
-			throw Config::InvalidConfigException();
+			exitWithError((char *)"webserv: Error: Configuration is invalid.", EE_NONE);//throw Config::InvalidConfigException();
 		}
 		string key = value[0];
 		string val = value[1];
@@ -106,7 +103,7 @@ void Config::debug(Config &config) {
 	std::cout << "servers: " << config.m_servers.size() << std::endl;
 	if (config.m_servers.size() == 0) { return; }
 	std::cout << "[" << std::endl;
-	for(int i = 0; i < config.m_servers.size(); i++) {
+	for(size_t i = 0; i < config.m_servers.size(); i++) {
 		ServerConf *serv = config.m_servers[i];
 		std::cout << StringUtil::space(2) << "{" << std::endl;
 		std::cout << StringUtil::space(4) << "serverName: " << serv->getServerName() << std::endl;
@@ -135,7 +132,7 @@ void Config::debug(Config &config) {
 void Config::printConfig(void) const
 {
 	std::cout << "================= severSize: [" << this->m_servers.size()  << "] =================" << std::endl;
-	for (int i = 0; i < this->m_servers.size(); ++i)
+	for (size_t i = 0; i < this->m_servers.size(); ++i)
 	{
 		std::cout << "• server        : [" << i << "]" << std::endl;
 		std::cout << "• serverName    : " << this->m_servers.at(i)->getServerName() << std::endl;
@@ -144,10 +141,6 @@ void Config::printConfig(void) const
 		std::cout << "• index         : " << this->m_servers.at(i)->getIndex() << std::endl;
 		std::cout << "• directoryList : " << this->m_servers.at(i)->getDirList() << std::endl;
 		std::cout << "• clientSize    : " << this->m_servers.at(i)->getClientSize() << std::endl;
-		// if (this->m_servers.at(i)->getCGI().empty())
-		// 	std::cout << "• cgi           : none" << std::endl;
-		// else
-		// 	std::cout << "• cgi           : " << this->m_servers.at(i)->getCGI() << std::endl;
 		std::cout << "• method        : ";
 		for (vector<string>::const_iterator it = this->m_servers.at(i)->getMethod().begin();
 			it != this->m_servers.at(i)->getMethod().end(); ++it)
