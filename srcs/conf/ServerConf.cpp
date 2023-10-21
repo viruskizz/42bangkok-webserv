@@ -48,14 +48,14 @@ void	ServerConf::validate(void) const
 					exitWithError((char *)"webserv : config-ERROR: Invalid Key of Location.", EE_NONE);
 				++locationMap;
 			}
-			if (isMapKeyFound(*location, "path") && !isMapKeyFound(*location, "root"))
-				exitWithError((char *)"webserv : config-ERROR: Key \"path\" must following with \"root\".", EE_NONE);
-			else if( isMapKeyFound(*location, "root") && !isMapKeyFound(*location, "path"))
-				exitWithError((char *)"webserv : config-ERROR: Key \"root\" must following with \"path\".", EE_NONE);
-			else if (isMapKeyFound(*location, "cgi_file") && !isMapKeyFound(*location, "cgi_pass"))
-				exitWithError((char *)"webserv : config-ERROR: Key \"cgi_file\" must following with \"cgi_pass\".", EE_NONE);
-			else if (isMapKeyFound(*location, "cgi_pass") && !isMapKeyFound(*location, "cgi_file"))
-				exitWithError((char *)"webserv : config-ERROR: Key \"cgi_pass\" must following with \"cgi_file\".", EE_NONE);
+			// if (isMapKeyFound(*location, "path") && !isMapKeyFound(*location, "root"))
+			// 	exitWithError((char *)"webserv : config-ERROR: Key \"path\" must following with \"root\".", EE_NONE);
+			// else if( isMapKeyFound(*location, "root") && !isMapKeyFound(*location, "path"))
+			// 	exitWithError((char *)"webserv : config-ERROR: Key \"root\" must following with \"path\".", EE_NONE);
+			// else if (isMapKeyFound(*location, "cgi_file") && !isMapKeyFound(*location, "cgi_pass"))
+			// 	exitWithError((char *)"webserv : config-ERROR: Key \"cgi_file\" must following with \"cgi_pass\".", EE_NONE);
+			// else if (isMapKeyFound(*location, "cgi_pass") && !isMapKeyFound(*location, "cgi_file"))
+			// 	exitWithError((char *)"webserv : config-ERROR: Key \"cgi_pass\" must following with \"cgi_file\".", EE_NONE);
 			++location;
 		}
 	}

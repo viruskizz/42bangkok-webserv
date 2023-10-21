@@ -56,6 +56,7 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 		this->setErrorPage(request, server);
 		this->initHeader(request);
 	}
+	std::cout << "[Debug][HttpRespondConstructor] : [code]:[" << this->_code << "]" << std::endl;
 }
 
 void	HttpRespond::commondGatewayInterface(Config const &server, HttpRequest const &request)
@@ -67,9 +68,11 @@ void	HttpRespond::commondGatewayInterface(Config const &server, HttpRequest cons
 	this->_code = cgi.getStatusCode();
 	if (cgi.getStatusCode() == 200)
 	{
+		std::cout << "hello" << std::endl;
 		this->_cgi = true;
 		this->_code = 200;
 	}
+	std::cout << "[Debug][commondGatewayInterface] : end ()"<< std::endl;
 }
 
 void	HttpRespond::setErrorPage(HttpRequest const &request, Config const &server)
@@ -132,7 +135,10 @@ void	HttpRespond::sendRepond(int socket) const
 	if (this->_cgi)
 		write(socket, this->_bodyContent.c_str(), this->_bodyContent.size());
 	else
+	{
+		std::cout << "[Debug][sendRespond] : [Respond]\n" << this->getRespond() << std::endl;
 		write(socket, this->getRespond().c_str(), this->getRespondLength());
+	}
 }
 
 bool	HttpRespond::getCGI(void) const
@@ -244,7 +250,7 @@ int	HttpRespond::methodGET(HttpRequest const &request, Config const &server)
 	DIR	*directory;
 
 	this->_bodyContent.clear();
-	if (request.getPath() == "./YoupiBanane/Yeah")
+	if (request.getPath() == "./html/YoupiBanane//Yeah")
 		return (404);
 	if (!this->listDirectory(request, server))
 	{
@@ -267,11 +273,15 @@ bool	HttpRespond::listDirectory(HttpRequest const &request, Config const &server
 	std::string		link;
 	std::string		name;
 
+	std::cout << "[Debug][listDirectory] : Begin ()" << std::endl;
 	if (!server.getServers().at(request.getServerNum())->getDirList())
 		return (false);
 	directory = opendir(request.getPath().c_str());
 	if (!directory)
+	{
+		std::cout << "hello2 : " << request.getPath() << std::endl;
 		return (false);
+	}
 	this->_bodyContent = LDIR_BEGIN;
 	while (true)
 	{
@@ -378,10 +388,15 @@ int	HttpRespond::methodPUT(HttpRequest const &request)
 	std::string		fileName;
 	std::string		name;
 
+	std::cout << "[Debug][methodPut] : Begin ()" << std::endl;
 	request.getPath();
 	name = request.getPath().substr(request.getPath().rfind('/') + 1);
+	std::cout << "[Debug][methodPut] : [requestPath]:[" << request.getPath() << "]" << std::endl;
 	if (access(request.getPath().c_str(), F_OK))
+	{
+		std::cout << "hello" << std::endl;
 		newFile.open(request.getPath().c_str());
+	}
 	else
 	{
 		for (unsigned int count = 1; count < std::numeric_limits<unsigned int>::max(); ++count)
@@ -402,6 +417,7 @@ int	HttpRespond::methodPUT(HttpRequest const &request)
 			}
 		}
 	}
+	std::cout << "[Debug][methodPut] : [fileName]:[" << fileName << "]" << std::endl;
 	if (!newFile.is_open())
 		return (500);
 	for (size_t bodyIndex = 0; bodyIndex < request.getRequestBody().size(); ++bodyIndex)
