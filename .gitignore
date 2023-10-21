@@ -3,5 +3,5 @@ build
 webserv
 a.out
 .gitignore
-.DS_Store
+*.DS_Store
 .vscode/settings.json
