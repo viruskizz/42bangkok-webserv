@@ -34,12 +34,9 @@ typedef map<string, string> StringMap;
 # define C_YELLOW "\033[0;33m"
 # define C_RESET "\033[0m"
 
-// #include <iostream>
 # define BREAK_LINE (char *)"\r\n"
 # define READSIZE 111111111
 # define HTTP (char *)"HTTP/1.1 "
-# define ROOT (char *)"/Users/shivarakii/Documents/42_coding/webserv_42/html"
-// # define ROOT (char *)"/home/araiva/42bangkok/webserv/html"
 /*
 * marco for exitWithError() EE_PERR with perror() | EE_NONE just string*/
 # define EE_PERR 1

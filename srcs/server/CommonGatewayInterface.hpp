@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:31:38 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/20 18:39:10 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/21 09:09:56 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,10 +51,8 @@ class CommonGatewayInterface
 		std::string					_serverName;
 		std::vector<std::string>	_environment;
 		int							_cgiStatus;
-		// Config						_server;
-		// static std::map<std::string, std::string> const	_fileType;
-		void			initScriptURI(Config const &server, HttpRequest const &request);
-		void			buildEnvironment(Config const &server, HttpRequest const &request);
+		void			initScriptURI(HttpRequest const &request);
+		void			buildEnvironment(HttpRequest const &request);
 		char			**getExecutorPath(std::string const &exceLanguage);
 		int				pathExecutor(char **execPath, std::vector<RequestBody> const &requestBody, int i);
 		std::string		getExecutorLanguage(Config const &server, HttpRequest const &request);

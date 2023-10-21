@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 01:30:55 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/09/30 00:26:57 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/21 08:51:10 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,12 @@
 
 RequestBody::RequestBody(void) : _method(0), _fileName(""), _content(""), _fileType(""), _contentLength(-1)
 {
-	std::cout << "(RequestBody) Defualt constructor is called." << std::endl;
+	// std::cout << "(RequestBody) Defualt constructor is called." << std::endl;
 }
 
 RequestBody::RequestBody(RequestBody const &rhs)
 {
-	std::cout << "(RequestBody) Copy constructor is called." << std::endl;
+	// std::cout << "(RequestBody) Copy constructor is called." << std::endl;
 	*this = rhs;
 }
 
@@ -30,7 +30,7 @@ RequestBody::~RequestBody(void)
 
 RequestBody	&RequestBody::operator=(RequestBody const &rhs)
 {
-	std::cout << "(RequestBody) Copy assignment operator is called." << std::endl;
+	// std::cout << "(RequestBody) Copy assignment operator is called." << std::endl;
 	if (this != &rhs)
 	{
 		this->_method = rhs._method;

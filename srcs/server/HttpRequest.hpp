@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 18:57:45 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/06 20:46:49 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/21 08:32:20 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,22 +42,6 @@ class HttpRequest
 		int											getServerNum(void) const;
 		int											getMaxBody(void) const;
 		void										setPath(std::string &path);
-
-	
-		class CannotReadSocketException : public std::exception
-		{
-			public:
-				virtual const char * what() const throw () {
-					return ("(HttpRequest) Error: cannot read from socket_intput.");
-				}
-		};
-		class CannotAllocateException : public std::exception
-		{
-			public:
-				virtual const char * what() const throw () {
-					return ("(HttpRequest) Error: cannot allocate the memory.");
-				}
-		};
 
 	private:
 		std::string							_raw;

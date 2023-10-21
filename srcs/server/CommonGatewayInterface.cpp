@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:43:02 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/20 20:48:07 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/21 09:45:18 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,30 +18,31 @@ _protocol(""), _scheme(""), _serverPort(""), _method(""), _pathInfo(""), _pathTr
 _pathFileName(""), _scriptName(""), _fileName(""), _query(""), _clientName(""), _clientPort(""),
 _cgiStatus(200)
 {
-	std::cout << "(CommonGatewayInterface) Defualt constructor is called." << std::endl;
+	// std::cout << "(CommonGatewayInterface) Defualt constructor is called." << std::endl;
 }
 
 CommonGatewayInterface::CommonGatewayInterface(Config const &server, HttpRequest const &request) : _cgiStatus(200)
 {
-	std::cout << "(CommonGatewayInterface) Constructor is called." << std::endl;
-	this->initScriptURI(server, request);
-	this->buildEnvironment(server, request);
+	// std::cout << "(CommonGatewayInterface) Constructor is called." << std::endl;
+	(void) server;
+	this->initScriptURI(request);
+	this->buildEnvironment(request);
 }
 
 CommonGatewayInterface::CommonGatewayInterface(CommonGatewayInterface const & src)
 {
-	std::cout << "(CommonGatewayInterface) Copy constructor is called." << std::endl;
+	// std::cout << "(CommonGatewayInterface) Copy constructor is called." << std::endl;
 	*this = src;
 }
 
 CommonGatewayInterface::~CommonGatewayInterface(void)
 {
-	std::cout << "(CommonGatewayInterface) Destructor is called." << std::endl;
+	// std::cout << "(CommonGatewayInterface) Destructor is called." << std::endl;
 }
 
 CommonGatewayInterface	&CommonGatewayInterface::operator=(CommonGatewayInterface const &rhs)
 {
-	std::cout << "(CommonGatewayInterface) Copy assiagnment operator is called." << std::endl;
+	// std::cout << "(CommonGatewayInterface) Copy assiagnment operator is called." << std::endl;
 	if (this != &rhs)
 	{
 		this->_cgiStatus = rhs._cgiStatus;
@@ -70,13 +71,13 @@ int	CommonGatewayInterface::getStatusCode(void) const
 	return (this->_cgiStatus);
 }
 
-static void	writeFile(std::string const &name, std::string const content)
-{
-	std::ofstream	file;
-	file.open(name.c_str(), std::ofstream::trunc | std::ofstream::out);
-	file << content;
-	file.close();
-}
+// static void	writeFile(std::string const &name, std::string const content)
+// {
+// 	std::ofstream	file;
+// 	file.open(name.c_str(), std::ofstream::trunc | std::ofstream::out);
+// 	file << content;
+// 	file.close();
+// }
 
 void	CommonGatewayInterface::printValue(void) const
 {
@@ -109,25 +110,20 @@ static std::string	readFile(int fd);
 static bool	checkCGIHeader(std::string &content, HttpRequest const &request);
 static int	findBreakLine(std::vector<std::string> const &splited);
 
-// TODO review ERROR with the path for executing isn't exist;
 std::string	CommonGatewayInterface::executeCGI(Config const &server, HttpRequest const &request)
 {
 	std::string	content;
 	int			fd;
 	char		**executePath;
 
-	std::cout << "[Debug] CGIexecute : " << this->_cgiStatus << std::endl;
 	// if (this->_cgiStatus != 200)
 	// 	return (content);
-	std::cout << "[DebugPost] hello" << std::endl;
 	executePath = getExecutorPath(getExecutorLanguage(server, request));
 	if (!executePath)
 	{
-		std::cerr << "exeuctePath == NULL" << std::endl;
-		this->_cgiStatus = 404; // TODO check the status code with path not exist;
-		return ("content");
+		this->_cgiStatus = 404;
+		return (content);
 	}
-	std::cout << "[Debug] hello" << std::endl;
 	if (!request.getRequestBody().size())
 	{
 		fd = pathExecutor(executePath, request.getRequestBody(), -1);
@@ -140,8 +136,7 @@ std::string	CommonGatewayInterface::executeCGI(Config const &server, HttpRequest
 		content = this->executeWithBody(request, executePath);
 	if (!request.getFileCGI().empty() && !checkCGIHeader(content, request))
 		this->_cgiStatus = 500;
-	writeFile("./result.txt", content);
-	std::cout << "[Debug][End] CGIexecute () : " << std::endl;
+	// writeFile("./result.txt", content);
 	return (content);
 }
 
@@ -153,7 +148,6 @@ std::string	 CommonGatewayInterface::executeWithBody(HttpRequest const &request,
 	int					fd;
 	size_t				breakLine;
 
-	std::cout << "[Debug] body + cgi" << std::endl;
 	body.clear();
 	for (size_t index = 0; index < request.getRequestBody().size(); ++index)
 	{
@@ -191,14 +185,12 @@ std::string	 CommonGatewayInterface::executeWithBody(HttpRequest const &request,
 		if (!isStringFound(content, "Content-Length: "))
 			content += "Content-Length: " +  intToString(body.size()) + "\r\n";
 		content += "\r\n";
-		std::cout << "[Debug] content : |" << content << "|" << std::endl;
 		// content += "1000000\r\n";
 		content += body + "\r\n";
 		// content += "<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<title>hello</title>\n\t</head>\n\t<body>\n\t\t" + body + "\n\t</body>\n</html>\r\n";
 		// content += "0\r\n\r\n0\r\n\r\n";
-		writeFile("./log.txt", content);
+		// writeFile("./log.txt", content);
 	}
-	std::cout << "[Debug][Breakline] : " << findBreakLine(splited) << std::endl;
 	return (content);
 }
 
@@ -227,7 +219,6 @@ static int	findBreakLine(std::vector<std::string> const &splited)
 	return (0);
 }
 
-// TODO change ROOT to real variable;
 std::string CommonGatewayInterface::getExecutorLanguage(Config const &server, HttpRequest const &request)
 {
 	(void) server;
@@ -250,7 +241,6 @@ char	**CommonGatewayInterface::getExecutorPath(std::string const &exceLanguage)
 
 	execPath = NULL;
 	index = 0;
-	std::cout << "(getExecutorPath) -> |" << exceLanguage << "|" << std::endl;
 	if (!access(exceLanguage.c_str(), F_OK | R_OK | X_OK))
 	{
 		execPath = stringAdd(NULL, const_cast<char*>(exceLanguage.c_str()), SA_NONE);
@@ -282,37 +272,29 @@ char	**CommonGatewayInterface::getExecutorPath(std::string const &exceLanguage)
 
 #define INFILE_NAME (char *)"t1s3AStaTEmpuLAl1flYinp00tfoRC0mmoNGAt3way1Nte2fac335ucuT3"
 
-// int	CommonGatewayInterface::pathExecutor(char **execPath, std::string requestBody)
 int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBody> const &requestBody, int index)
 {
 	int				fd[2];
 	int				inputFd;
 	pid_t			pid;
-	int				returnValue = 0;
+	int				returnValue;
 	std::ofstream	inputFile;
 	char			**environment;
 
-	std::cout << "[Debug][Begin]" << " - pathExcuteor - " << std::endl;
-	std::cout << "(pathExecutor) read request body" << std::endl;
+	returnValue = 0;
 	inputFile.open(INFILE_NAME, std::ofstream::trunc | std::ofstream::out);
 	if (!inputFile.is_open())
 		return (-1);
-	std::string content;
-	content.clear();
+	// std::string content;
+	// content.clear();
 	if (index != -1)
 		inputFile << requestBody.at(index).getContent();
 	inputFile.close();
 	if (pipe(fd) < 0)
-	{
-		std::cerr << "ERROR: usuccess piped." << std::endl;
 		return (-1);
-	}
 	pid = fork();
 	if (pid == -1)
-	{ 
-		std::cerr << "ERROR: unsuccess forked." << std::endl;
 		return (-1);
-	}
 	else if (!pid)
 	{
 		// this->_environment.push_back("CONTENT_LENGTH: " + intToString(len));
@@ -322,11 +304,7 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 			|| close(fd[0]) == -1 || close(fd[1]) == -1 || close(inputFd) == -1)
 			exit(2);
 		environment = vectorStringToChar(this->_environment);
-		std::cerr << "[Debug]" << "executed" << std::endl;
-		for (int i = 0; execPath[i]; ++i)
-			std::cerr << execPath[i] << std::endl;
 		execve(execPath[0], execPath, environment);
-		std::cerr << "ERORR: unsuccessful execve" << std::endl;
 		exit(1);
 	}
 	else
@@ -341,22 +319,11 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 	return (fd[0]);
 }
 
-
-// CONTEXT_DOCUMENT_ROOT = /home/cgi101/public_html
-// CONTEXT_PREFIX = 
-//? AUTH_TYPE: identification type, if applicable.
-//? CONTENT_TYPE: Internet media type of input data if PUT or POST method are used, as provided via HTTP header.
-//? CONTENT_LENGTH: similarly, size of input data (decimal, in octets) if provided via HTTP header.
-// TODO check argument server is used or not;
-void	CommonGatewayInterface::buildEnvironment(Config const &server, HttpRequest const &request)
+void	CommonGatewayInterface::buildEnvironment(HttpRequest const &request)
 {
-	(void) server;
 	std::map<std::string, std::string>	requestHeader(request.getRequestHeader());
-	// while (environ[index])
-	// 	this->_environment.push_back(std::string(environ[index++]));
-	
+
 	this->_environment.push_back("HTTP_ACCEPT=" + requestHeader["Accept"]);
-	//  HTTP_ACCEPT_CHARSET="ISO-8859-1,utf-8;q=0.7,*;q=0.7"
 	this->_environment.push_back("HTTP_ACCEPT_ENCODING=" + requestHeader["Accept-Encoding"]);
 	this->_environment.push_back("HTTP_ACCEPT_LANGUAGE=" + requestHeader["Accept-Language"]);
 	this->_environment.push_back("HTTP_CONNECTION=" + requestHeader["Connection"]);;
@@ -367,16 +334,11 @@ void	CommonGatewayInterface::buildEnvironment(Config const &server, HttpRequest 
 	this->_environment.push_back("PATH_INFO=" + this->_pathInfo);
 	this->_environment.push_back("PATH_TRANSLATED=" + this->_pathTranslated);
 	this->_environment.push_back("QUERY_STRING=" + this->_query);
-	//*  REMOTE_ADDR="127.0.0.1"
-	//*  REMOTE_PORT="63555"
 	this->_environment.push_back("REQUEST_METHOD=" + this->_method);
 	this->_environment.push_back("REQUEST_SCHEME=" + this->_scheme);
 	this->_environment.push_back("REQUEST_URI=" + requestHeader["URL"]);
 	this->_environment.push_back("SCRIPT_FILENAM=" + this->_pathFileName);
 	this->_environment.push_back("SCRIPT_NAME=" + this->_scriptName);
-	//*  SERVER_ADDR="127.0.0.1"
-	//  SERVER_ADMIN="(server admin's email address)"
-	//*  SERVER_NAME="127.0.0.1"
 	this->_environment.push_back("SERVER_PORT=" + this->_serverPort);
 	this->_environment.push_back("SERVER_PROTOCOL=" + this->_protocol);
 }
@@ -403,23 +365,19 @@ static std::string	readFile(int fd)
 
 static int	getFileIndex(std::string const &url, std::vector<std::string> &pathSplited, HttpRequest const &request);
 
-// TODO server argument didn't use check it later;
-void	CommonGatewayInterface::initScriptURI(Config const &server, HttpRequest const &request)
+void	CommonGatewayInterface::initScriptURI(HttpRequest const &request)
 {
 	std::vector<std::string>	URISplited;
 	std::vector<std::string>	pathSplited;
 	std::vector<std::string>	splited;
 	int							fileIndex;
 
-	(void) server;
-	std::cout << "[Debug][initScripURI] " << request.getRequestHeader().at("URL") << std::endl;
 	URISplited = split(request.getRequestHeader().at("URL"), '?');
 	if (URISplited.size() == 2)
 		this->_query = URISplited[1];
 	fileIndex = getFileIndex(URISplited[0], pathSplited, request);
 	if (fileIndex == -1)
 	{
-		std::cout << "[Debug] initScriptURI () : ERROR 404 [" << fileIndex << "]" << std::endl;
 		this->_cgiStatus = 404;
 		return ;
 	}
@@ -431,13 +389,10 @@ void	CommonGatewayInterface::initScriptURI(Config const &server, HttpRequest con
 		splited = split(request.getRequestHeader().at("Host"), ':');
 		this->_serverName = splited[0];
 		if (splited.size() > 1)
-			this->_serverPort = splited[1]; //TODO << serverPort should check with port in server
+			this->_serverPort = splited[1];
 		else
 			this->_serverPort = "80";
 	}
-	std::cout << "[Debug][initScript] pathSplited : fileIndex -> |" << fileIndex << "|" << std::endl;
-	for (size_t i = 0; i < pathSplited.size(); ++i)
-		std::cout << " -> |" << pathSplited[i] << "|" << std::endl;
 	this->_fileName = pathSplited[fileIndex];
 	this->_scriptName = request.getPath();
 	this->_pathInfo = URISplited.at(0);
@@ -456,7 +411,6 @@ static int	getFileIndex(std::string const &url, std::vector<std::string> &pathSp
 	pathSplited = split(url, '/');
 	for (size_t i = 0; i < pathSplited.size(); ++i)
 	{
-		std::cout << "[Debug][getFileIndex] : |" << pathSplited.at(i) << "| == |" << fileCGI << "|" << "    : " << request.getFileCGI() << std::endl;
 		if (request.getFileCGI().find('*') != std::string::npos && pathSplited.at(i).find(fileCGI) != std::string::npos)
 			return (i);
 		else if (pathSplited.at(i) == fileCGI)
@@ -484,7 +438,6 @@ static bool	checkCGIHeader(std::string &content, HttpRequest const &request)
 		{
 			status += content.at(position);
 			++position;
-
 		}
 		headerRespond = request.getRequestHeader().at("Protocol") + status;
 		if (content.find(headerRespond) != std::string::npos)
@@ -493,14 +446,12 @@ static bool	checkCGIHeader(std::string &content, HttpRequest const &request)
 		{
 			headerRespond += "\n";
 			size_t i = content.find("Status");
-			std::cout << "-status-> : " << status << std::endl;
 			for (;i < content.length() && content.at(i) != '\n' && content.at(i) != '\r';)
 				content.erase(i, 1);
 			if (i < content.length() && content.at(i) == '\r')
 				content.erase(i, 1);
 			if (i < content.length() && content.at(i) == '\n')
 				content.erase(i, 1);
-			std::cout << "[Debug]|" << headerRespond << "|" << std::endl;
 			content.insert(0, headerRespond);
 			return (true);
 		}

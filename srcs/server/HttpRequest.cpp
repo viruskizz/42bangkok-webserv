@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/08 23:20:21 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/20 18:42:54 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/21 08:32:49 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,12 @@
 
 HttpRequest::HttpRequest(void) : _raw(""), _path(""),_fileCGI("") , _serverNum(0), _maxBody(-1), _badRequest(false)
 {
-	std::cout << "(HttpRequest) Defualt constructor is called." << std::endl;
+	// std::cout << "(HttpRequest) Defualt constructor is called." << std::endl;
 }
  
 HttpRequest::HttpRequest(int socket, Config const &server) : _serverNum(0), _maxBody(-1), _badRequest(false)
 {
+	// std::cout << "(HttpRequest) Constructor is called." << std::endl;
 	this->readSocket(socket);
 	this->requestPaser();
 	if (!this->_requestHeader.size())
@@ -30,18 +31,18 @@ HttpRequest::HttpRequest(int socket, Config const &server) : _serverNum(0), _max
 
 HttpRequest::HttpRequest(HttpRequest const &rhs)
 {
-	std::cout << "(HttpRequest) Copy constructor is called." << std::endl;
+	// std::cout << "(HttpRequest) Copy constructor is called." << std::endl;
 	*this = rhs;
 }
 
 HttpRequest::~HttpRequest(void)
 {
-	std::cout << "(HttpRequest) Destructor is called." << std::endl;
+	// std::cout << "(HttpRequest) Destructor is called." << std::endl;
 }
 
 HttpRequest	&HttpRequest::operator=(HttpRequest const &rhs)
 {
-	std::cout << "(HttpRequest) Copy assignment operator is called." << std::endl;
+	// std::cout << "(HttpRequest) Copy assignment operator is called." << std::endl;
 	if (this != &rhs)
 	{
 		this->_raw = rhs._raw;
@@ -108,12 +109,11 @@ void	HttpRequest::readSocket(int socket)
 	int		readByte;
 	int		contentLength;
 
-	std::cout << "[Debug][Begin] readSocker ()" << std::endl;
 	contentLength = 0;
 	content = NULL;
 	buffer = new char[READSIZE + 1];
 	if (!buffer)
-		throw (HttpRequest::CannotAllocateException());
+		exitWithError((char *)"wevserv: ERROR ", EE_PERR);
 	while (true)
 	{
 		memset(buffer, 0, READSIZE);
@@ -133,7 +133,6 @@ void	HttpRequest::requestPaser(void)
 	std::vector<std::string>	requestLine;
 	std::vector<std::string>	lineSplited;
 
-	std::cout << "[Debug] requestPaser" << std::endl;
 	requestLine = split(stringTrim(this->_raw, " \t\r\n\v\f"), '\n');
 	for (std::vector<std::string>::iterator it = requestLine.begin();
 	it != requestLine.end(); ++it)
@@ -157,7 +156,6 @@ void	HttpRequest::requestPaser(void)
 		else if (lineSplited[0] == "Origin" || lineSplited[0] == "Host" || lineSplited[0] == "Referer")
 		{
 			lineSplited = lineSplited = split(stringTrim((*it), " \t\r\n\v\f"), ' ');
-			// lineSplited[0].pop_back();
 			lineSplited[0].erase(lineSplited[0].size() - 1);
 			this->_requestHeader.insert(std::pair<std::string, std::string>(lineSplited[0], lineSplited[1]));
 		}
@@ -189,7 +187,6 @@ std::vector<std::string>::iterator	HttpRequest::requestBodyPaser(
 	std::string bodyContent;
 	bool		isGetBody;
 
-	std::cout << "[Debug] bodyPaser() start" << std::endl;
 	this->_requestBody.clear();
 	bodyContent = this->_raw.substr(this->_raw.find("\r\n\r\n") + 4);
 	while (it != requestLine.end())
@@ -256,7 +253,6 @@ std::vector<std::string>::iterator	HttpRequest::requestBodyChunkPaser(std::vecto
 	this->_requestBody.clear();
 	while (it != requestLine.end())
 	{
-		std::cout << "[Debug] bodyPaser() chunked --hexadacimalToInt(it)--> [" << hexadacimalToInt(it->c_str()) << "]" << std::endl;
 		if (!isGetLength)
 		{
 			if (this->_requestHeader.at("Method") == "PUT")
@@ -293,8 +289,6 @@ void	HttpRequest::initHttpRequest(Config const &server)
 	std::string pathURL;
 	std::vector<std::map<std::string, std::string> >::const_iterator	it;
 
-	std::cout << "[Debug] - initPath() -" << std::endl;
-	std::cout << "HOST: " << this->_requestHeader.at("Host") << std::endl;
 	pathURL = (this->_requestHeader.find("URL") != this->_requestHeader.end()) ? this->_requestHeader.at("URL") : "";
 	if (pathURL.empty() || this->_requestHeader.find("Host") == this->_requestHeader.end())
 		this->_badRequest = true;
@@ -318,7 +312,6 @@ void	HttpRequest::initHttpRequest(Config const &server)
 	this->_maxBody = server.getServers().at(this->_serverNum)->getClientSize();
 	this->_methodAllow = server.getServers().at(this->_serverNum)->getMethod();
 	this->_fileCGI.clear();
-	std::cout << "[Debug] finish set serverNum" << std::endl;
 	if (this->_requestHeader.at("URL") == "/")
 	{
 		this->_path = server.getServers().at(this->_serverNum)->getRoot() + "/" + server.getIndex();
@@ -339,7 +332,6 @@ void	HttpRequest::initHttpRequest(Config const &server)
 		if (this->_fileCGI.empty())
 			this->_path = server.getServers().at(this->_serverNum)->getRoot() + pathURL;
 	}
-	std::cout << "[Debug] -path----> " << this->_path << std::endl;
 }
 
 void	HttpRequest::initPath(
@@ -348,7 +340,6 @@ void	HttpRequest::initPath(
 	int	position;
 
 	(void) server;
-	std::cout << "[Debug] initPath ()" << std::endl;	
 	if (it->find("root") != it->end())
 	{
 		position = pathURL.find(it->at("path"));
@@ -400,7 +391,6 @@ bool	HttpRequest::innitCGIPath(std::vector<std::map<std::string,
 			this->_maxBody = stringToint(it->at("client_max_size"));
 		return (true);
 	}
-	std::cout << "[Debug][initCGI] : initCGIPATH : |" << fileCGI << "|==|" << fileName << "|" << std::endl;
 	return (false);
 }
 
@@ -416,17 +406,17 @@ std::ostream	&operator<<(std::ostream &out, HttpRequest const &rhs)
 	out << "  • _path: " << rhs.getPath() << std::endl;
 	out << "=============================================================" << std::endl;
 	out << "===================== (HttpRequestBody) =====================" << std::endl;
-	// if (rhs.getRequestBody().size())
-	// {
-	// 	for (std::vector<RequestBody>::const_iterator it = rhs.getRequestBody().begin();
-	// 	it != rhs.getRequestBody().end(); ++it)
-	// 		out << *it;
-	// }
-	// else
-	// 	out << "            this request's body has no content" << std::endl;
+	if (rhs.getRequestBody().size())
+	{
+		for (std::vector<RequestBody>::const_iterator it = rhs.getRequestBody().begin();
+		it != rhs.getRequestBody().end(); ++it)
+			out << *it;
+	}
+	else
+		out << "            this request's body has no content" << std::endl;
 	out << "=============================================================" << std::endl;
 	out << "====================== (HttpRequestRaw) =====================" << std::endl;
-	// out << rhs.getRequestRaw() << std::endl;
+	out << rhs.getRequestRaw() << std::endl;
 	out << "=============================================================" << std::endl;
 	return (out);
 }

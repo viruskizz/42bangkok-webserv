@@ -23,15 +23,13 @@ Cookie								HttpRespond::_cookies;
 HttpRespond::HttpRespond(void) :
 _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 {
-	std::cout << "(HttpRespond) Defualt constructor is called." << std::endl;
+	// std::cout << "(HttpRespond) Defualt constructor is called." << std::endl;
 }
 
-HttpRespond::HttpRespond(int socket, HttpRequest &request, Config const &server, int bodyIndex) :
+HttpRespond::HttpRespond(HttpRequest &request, Config const &server, int bodyIndex) :
 _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 {
-	std::cout << "(HttpRespond) Constructor is called." << std::endl;
-
-	(void) socket;
+	// std::cout << "(HttpRespond) Constructor is called." << std::endl;
 	if (request.getServerNum() >= (int) server.getServers().size())
 		this->_code = 502;
 	else if (request.getPath().empty() || request.getRequestHeader().find("Host") == request.getRequestHeader().end())
@@ -48,25 +46,20 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 		this->_bodyContent.clear();
 		this->_bodyContent = cgi.executeCGI(server, request);
 		this->_code = cgi.getStatusCode();
-		std::cout << this->_code << std::endl;
 		if (cgi.getStatusCode() == 200)
 		{
 			this->_cgi = true;
 			this->_code = 200;
 		}
 	}
-	else if (request.getRequestHeader().at("Method") == "GET"
-		&& findStringInVector(request.getMethodAllow(), "GET"))
+	else if (request.getRequestHeader().at("Method") == "GET" && findStringInVector(request.getMethodAllow(), "GET"))
 		this->_code = methodGET(request, server);
-	else if (request.getRequestHeader().at("Method") == "POST"
-		&& findStringInVector(request.getMethodAllow(), "POST"))
+	else if (request.getRequestHeader().at("Method") == "POST" && findStringInVector(request.getMethodAllow(), "POST"))
 		this->_code = methodPOST(request, server, bodyIndex);
-	else if (request.getRequestHeader().at("Method") == "DELETE"
-		&& findStringInVector(request.getMethodAllow(), "DELETE"))
+	else if (request.getRequestHeader().at("Method") == "DELETE" && findStringInVector(request.getMethodAllow(), "DELETE"))
 		this->_code = methodDELETE(request);
-	else if (request.getRequestHeader().at("Method") == "PUT"
-		&& findStringInVector(request.getMethodAllow(), "PUT"))
-		this->_code = methodPUT(request, server);
+	else if (request.getRequestHeader().at("Method") == "PUT" && findStringInVector(request.getMethodAllow(), "PUT"))
+		this->_code = methodPUT(request);
 	else
 		this->_code = 405;
 	if (!this->_cgi)
@@ -74,45 +67,38 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 		this->setErrorPage(request, server);
 		this->initHeader(request);
 	}
-	std::cout << "[Debug] code: " << this->_code << std::endl;
 }
 
 void	HttpRespond::setErrorPage(HttpRequest const &request, Config const &server)
 {
-	std::cout << "[Debug]" << "initErrorPage: " << this->_code << std::endl;
 	if (this->_code == 200)
 		return ;
 	if (request.getServerNum() < (int) server.getServers().size()
 		&& server.getServers().at(request.getServerNum())->getReturnPage().find(intToString(this->_code))
 		!= server.getServers().at(request.getServerNum())->getReturnPage().end())
 	{
-		std::cout << "[Debug] rewrite return page" << std::endl;
 		if (this->readFile(server.getServers().at(request.getServerNum())->getReturnPage().at(intToString(this->_code))) != 200)
 			this->_bodyContent = this->_statusCodeBody.at(this->_code);
 	}
 	else
-	{
-		std::cout << "[Debug] default return page " << this->_code << std::endl;
 		this->_bodyContent = this->_statusCodeBody.at(this->_code);
-	}
 	this->_html = true;
 }
 
-
 HttpRespond::HttpRespond(HttpRespond const &src)
 {
-	std::cout << "(HttpRespond) Copy constructor is called." << std::endl;
+	// std::cout << "(HttpRespond) Copy constructor is called." << std::endl;
 	*this = src;
 }
 
 HttpRespond::~HttpRespond(void)
 {
-	std::cout << "(ServerRepond) Destructor is called." << std::endl;
+	// std::cout << "(ServerRepond) Destructor is called." << std::endl;
 }
 
 HttpRespond	&HttpRespond::operator=(HttpRespond const &rhs)
 {
-	std::cout << "(ServerRepond) Copy Assigntment operator is called." << std::endl;
+	// std::cout << "(ServerRepond) Copy Assigntment operator is called." << std::endl;
 	if (this != &rhs)
 	{
 		this->_respondHeader = rhs._respondHeader;
@@ -143,10 +129,7 @@ void	HttpRespond::sendRepond(int socket) const
 	if (this->_cgi)
 		write(socket, this->_bodyContent.c_str(), this->_bodyContent.size());
 	else
-	{
-		std::cout << "[Debug] ======== print =========\n" << this->getRespond() << std::endl;
 		write(socket, this->getRespond().c_str(), this->getRespondLength());
-	}
 }
 
 bool	HttpRespond::getCGI(void) const
@@ -193,10 +176,7 @@ void	HttpRespond::initHeader(HttpRequest const &request)
 
 	}
 	if (isMapKeyFound(request.getRequestHeader(), "Cookie"))
-	{
-		std::cout << "hellohello" << std::endl;
 		this->_respondHeader += this->_cookies.setCookieAndHeader(request.getRequestHeader().at("Cookie"));
-	}
 	this->_respondHeader += BREAK_LINE;
 }
 
@@ -258,11 +238,10 @@ int	HttpRespond::readFile(std::string const &fileName)
 
 int	HttpRespond::methodGET(HttpRequest const &request, Config const &server)
 {
-	DIR				*directory;
+	DIR	*directory;
 
-	std::cout << "[Debug][Begin] - GetMethod -" << std::endl;
 	this->_bodyContent.clear();
-	if (request.getPath() == "./html/8080/YoupiBanane/Yeah")
+	if (request.getPath() == "./YoupiBanane/Yeah")
 		return (404);
 	if (!this->listDirectory(request, server))
 	{
@@ -270,13 +249,10 @@ int	HttpRespond::methodGET(HttpRequest const &request, Config const &server)
 		if (directory)
 		{
 			closedir(directory);
-			std::cout << "[Debug] MethodGet: Dir not allow 503 end()" << std::endl;
 			return (503);
 		}
-		std::cout << "[Debug] MethodGet: ReadFIle end()" << std::endl;
 		return (this->readFile(request.getPath()));
 	}
-	std::cout << "[Debug] MethodGet: GOOD 200 end()" << std::endl;
  	return (200);
 }
 
@@ -332,13 +308,10 @@ bool	HttpRespond::listDirectory(HttpRequest const &request, Config const &server
 
 int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server, int bodyIndex)
 {
-	std::cout << "[Debug]" << "PostMethod() - [Begin]" << std::endl;
 	if (request.getRequestBody().size() < 1)
 		return (400);
 	if (request.getRequestHeader().at("Content-Type") == "multipart/form-data")
-	{
 		return (methodPOSTUpload(request, server, bodyIndex));
-	}
 	else
 	{
 		CommonGatewayInterface	cgi(server, request);
@@ -396,14 +369,12 @@ int	HttpRespond::methodPOSTUpload(HttpRequest const &request, Config const &serv
 	return (201);
 }
 
-int	HttpRespond::methodPUT(HttpRequest const &request, Config const &server)
+int	HttpRespond::methodPUT(HttpRequest const &request)
 {
 	std::ofstream	newFile;
 	std::string		fileName;
 	std::string		name;
 
-	std::cout << "[Debug][Begin] PUTmethod ()\n" << request << std::endl;
-	(void) server;
 	request.getPath();
 	name = request.getPath().substr(request.getPath().rfind('/') + 1);
 	if (access(request.getPath().c_str(), F_OK))
@@ -428,7 +399,6 @@ int	HttpRespond::methodPUT(HttpRequest const &request, Config const &server)
 			}
 		}
 	}
-	std::cout << "[Debug] fileName: " << fileName << std::endl;
 	if (!newFile.is_open())
 		return (500);
 	for (size_t bodyIndex = 0; bodyIndex < request.getRequestBody().size(); ++bodyIndex)
@@ -440,109 +410,6 @@ int	HttpRespond::methodPUT(HttpRequest const &request, Config const &server)
 	newFile.close();
 	return (201);
 }
-
-// TODO read filr with iostream;
-// bool HttpRespond::initBodyContent(HttpRequest &request, Config const &server)
-// {
-// 	int		readByte;
-// 	char	*buffer;
-// 	int		fd;
-//
-// 	if (request.getRequestHeader().at("URL") == "/")
-// 		fd = open(request.getPath().c_str(), O_RDONLY);
-// 	else
-// 		fd = open(std::string(ROOT + request.getPath()).c_str(), O_RDONLY);
-// 	if (fd < 0)
-// 		return (false);
-// 	buffer = new char[READSIZE + 1];
-// 	while (true)
-// 	{
-// 		readByte = read(fd, buffer, READSIZE);
-// 		buffer[readByte] = '\0';
-// 		if (readByte <= 0)
-// 			break ;
-// 		for (int index = 0; index < readByte; ++index)
-// 			this->_bodyContent.append(1, buffer[index]);
-// 	}
-// 	delete [] buffer;
-// 	close(fd);
-// 	return (true);
-// }
-//
-// int initBodyContent(HttpRequest const &request, Config const &server)
-// {
-// 	char	*buffer;
-// 	int		readByte;
-// 	int		bodySize;
-// 	int		fd;
-//
-// 	bodySize = 0;
-// 	fd = getFileDiscriptor(request, server);
-// 	if (fd < 0)
-// 	{
-// 		perror("webserv :ERROR"); // ? maybe need return errro number for respond header.
-// 		std::cout << "errno: " << errno << std::endl;
-// 		return (-1);
-// 	}
-// 	buffer = new char[READSIZE + 1];
-// 	while (true)
-// 	{
-// 		readByte = read(fd, buffer, READSIZE);
-// 		buffer[readByte] = '\0';
-// 		if (readByte <= 0)
-// 			break ;
-// 		*body = strjoin(*body,bodySize, buffer, readByte, SJ_FFIR);
-// 		bodySize += readByte;
-// 	}
-// 	delete [] buffer;
-// 	close(fd);
-// 	return (bodySize);
-// }
-
-// TODO change ROOT to real root;
-// static int	getFileDiscriptor(HttpRequest &request, Config const &server)
-// {
-// 	int			fd;
-//
-// 	if (request.getRequestHeader().at("URL") == "/")
-// 		fd = open(request.getPath().c_str(), O_RDONLY);
-// 	else
-// 		fd = open(std::string(ROOT + request.getPath()).c_str(), O_RDONLY);
-// 	return (fd);
-// }
-
-// static int	getFileDiscriptor(HttpRequest &request, Config const &server)
-// {
-// 	int			fd;
-// 	int			count;
-// 	std::string	fileName;
-//
-// 	count = 0;
-// 	if (request.getRequestHeader().at("URL") == "/")
-// 	{
-// 		while (count < server.getIndex().size())
-// 		{
-// 			fileName.clear();
-// 			fileName = std::string(ROOT) + "/" + server.getIndex()[count];
-// 			std::cout << "openFirst-> " << fileName << std::endl;
-// 			fd = open(fileName.c_str(), O_RDONLY);
-// 			if (fd >= 3)
-// 			{
-// 				request.setPath(fileName);
-// 				break ;
-// 			}
-// 			count++;
-// 		}
-// 	}
-// 	else
-// 	{
-// 		fileName.clear();
-// 		fileName = std::string(ROOT) + request.getRequestHeader().at("URL");
-// 		std::cout << "openSeccond-> " << fileName << std::endl;
-// 		fd = open(fileName.c_str(), O_RDONLY);
-// 	}
-// 	return (fd);
-// }
 
 int	HttpRespond::methodDELETE(HttpRequest const &request)
 {

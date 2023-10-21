@@ -44,7 +44,6 @@ public:
 	bool getDirList(void) const;
 	int getClientSize(void) const;
 	map<string, string> const & getReturnPage(void) const;
-	// string const & getCGI(void) const;
 
 	class InvalidConfigException: public std::exception {
 		public:

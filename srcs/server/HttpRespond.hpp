@@ -25,7 +25,6 @@
 class HttpRespond
 {
 	private:
-		// std::vector<std::string>				_respondHeader;
 		std::string								_respondHeader;
 		std::string								_bodyContent;
 		int										_code;
@@ -39,17 +38,16 @@ class HttpRespond
 		int			methodPOST(HttpRequest const &request, Config const &server, int bodyIndex);
 		int			methodPOSTUpload(HttpRequest const &request, Config const &server, int bodyIndex);
 		int			methodDELETE(HttpRequest const &request);
-		int			methodPUT(HttpRequest const &request, Config const &server);
+		int			methodPUT(HttpRequest const &request);
 
 		void		initHeader(HttpRequest const &request);
 		void		setErrorPage(HttpRequest const &request, Config const &server);
 		bool		listDirectory(HttpRequest const &request, Config const &server);
 		int			readFile(std::string const &filename);
-		// bool		initBodyContent(HttpRequest &request, Config const &server);
 
 	public:
 		HttpRespond(void);
-		HttpRespond(int socket, HttpRequest &request, Config const &server, int bodyIndex);
+		HttpRespond(HttpRequest &request, Config const &server, int bodyIndex);
 		HttpRespond(HttpRespond const &src);
 		~HttpRespond(void);
 		HttpRespond			&operator=(HttpRespond const &rhs);

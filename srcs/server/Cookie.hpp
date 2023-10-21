@@ -21,6 +21,4 @@ class Cookie
 		std::map<std::string, std::string>	_cookieList;
 };
 
-// std::ostream	&operator<<(std::ostream const &o, Cookie const &rhs);
-
 #endif
