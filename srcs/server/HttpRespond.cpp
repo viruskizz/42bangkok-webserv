@@ -30,7 +30,9 @@ HttpRespond::HttpRespond(HttpRequest &request, Config const &server, int bodyInd
 _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 {
 	// std::cout << "(HttpRespond) Constructor is called." << std::endl;
-	if (request.getServerNum() >= (int) server.getServers().size())
+	if (!request.getReturn().empty()) {
+		this->_code = stringToint(request.getReturn().at(0));
+	} else if (request.getServerNum() >= (int) server.getServers().size())
 		this->_code = 502;
 	else if (request.getPath().empty() || request.getRequestHeader().find("Host") == request.getRequestHeader().end())
 		this->_code = 400;
@@ -53,7 +55,7 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 		this->_code = 405;
 	if (!this->_cgi)
 	{
-		this->setErrorPage(request, server);
+		// this->setErrorPage(request, server);
 		this->initHeader(request);
 	}
 }
@@ -177,6 +179,9 @@ void	HttpRespond::initHeader(HttpRequest const &request)
 		}
 		this->_respondHeader += BREAK_LINE;
 
+	}
+	if (!request.getReturn().empty()) {
+		this->_respondHeader += "Location: " + request.getReturn().at(1);
 	}
 	if (isMapKeyFound(request.getRequestHeader(), "Cookie"))
 		this->_respondHeader += this->_cookies.setCookieAndHeader(request.getRequestHeader().at("Cookie"));

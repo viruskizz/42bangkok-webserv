@@ -32,7 +32,7 @@ public:
 	ServerConf(Config *, std::ifstream &);
 	~ServerConf(void);
 
-	static const char* LOCATION_KEYS[7];
+	static const char* LOCATION_KEYS[8];
 
 	string const & getServerName(void) const;
 	string const & getListen(void) const;

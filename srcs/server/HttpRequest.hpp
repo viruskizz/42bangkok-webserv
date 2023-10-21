@@ -39,6 +39,7 @@ class HttpRequest
 		std::string	const							&getRequestRaw(void) const;
 		std::string	const							&getPath(void) const;
 		std::string const							&getFileCGI(void) const;
+		std::vector<std::string> const				&getReturn(void) const;
 		int											getServerNum(void) const;
 		int											getMaxBody(void) const;
 		void										setPath(std::string &path);
@@ -53,6 +54,7 @@ class HttpRequest
 		int									_maxBody;
 		std::vector<std::string>			_methodAllow;
 		bool								_badRequest;
+		std::vector<std::string>			_return;
 
 		void								readSocket(int socket);
 		void								requestPaser(void);

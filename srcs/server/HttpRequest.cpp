@@ -53,6 +53,7 @@ HttpRequest	&HttpRequest::operator=(HttpRequest const &rhs)
 		this->_methodAllow = rhs._methodAllow;
 		this->_path = rhs._path;
 		this->_serverNum = rhs._serverNum;
+		this->_return = rhs._return;
 	}
 	return (*this);
 }
@@ -95,6 +96,11 @@ int	HttpRequest::getMaxBody(void) const
 std::vector<std::string> const	&HttpRequest::getMethodAllow(void) const
 {
 	return (this->_methodAllow);
+}
+
+std::vector<std::string> const	&HttpRequest::getReturn(void) const
+{
+	return (this->_return);
 }
 
 void	HttpRequest::setPath(std::string &path)
@@ -340,6 +346,11 @@ void	HttpRequest::initPath(
 	int	position;
 
 	(void) server;
+	if (it->find("return") != it->end()) {
+		std::vector<std::string> ret = StringUtil::split(it->at("return"), " ");
+		this->_return.push_back(ret[0]);
+		this->_return.push_back(ret[1]);
+	}
 	if (it->find("root") != it->end())
 	{
 		position = pathURL.find(it->at("path"));

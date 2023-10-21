@@ -46,16 +46,22 @@ void	ServerConf::validate(void) const
 			{
 				if (!isStringInArray(LOCATION_KEYS, locationMap->first))
 					exitWithError((char *)"webserv : config-ERROR: Invalid Key of Location.", EE_NONE);
+				if (locationMap->first == "return")
+				{
+					vector<string>	splited = split(locationMap->second, ' ');
+					if (splited.size() != 2)
+						exitWithError((char *)"webserv: config-ERROR: Invalid Return syntex.", EE_NONE);
+				}
 				++locationMap;
 			}
-			if (isMapKeyFound(*location, "path") && !isMapKeyFound(*location, "root"))
-				exitWithError((char *)"webserv : config-ERROR: Key \"path\" must following with \"root\".", EE_NONE);
-			else if( isMapKeyFound(*location, "root") && !isMapKeyFound(*location, "path"))
-				exitWithError((char *)"webserv : config-ERROR: Key \"root\" must following with \"path\".", EE_NONE);
-			else if (isMapKeyFound(*location, "cgi_file") && !isMapKeyFound(*location, "cgi_pass"))
-				exitWithError((char *)"webserv : config-ERROR: Key \"cgi_file\" must following with \"cgi_pass\".", EE_NONE);
-			else if (isMapKeyFound(*location, "cgi_pass") && !isMapKeyFound(*location, "cgi_file"))
-				exitWithError((char *)"webserv : config-ERROR: Key \"cgi_pass\" must following with \"cgi_file\".", EE_NONE);
+			// if (isMapKeyFound(*location, "path") && !isMapKeyFound(*location, "root"))
+			// 	exitWithError((char *)"webserv : config-ERROR: Key \"path\" must following with \"root\".", EE_NONE);
+			// else if( isMapKeyFound(*location, "root") && !isMapKeyFound(*location, "path"))
+			// 	exitWithError((char *)"webserv : config-ERROR: Key \"root\" must following with \"path\".", EE_NONE);
+			// else if (isMapKeyFound(*location, "cgi_file") && !isMapKeyFound(*location, "cgi_pass"))
+			// 	exitWithError((char *)"webserv : config-ERROR: Key \"cgi_file\" must following with \"cgi_pass\".", EE_NONE);
+			// else if (isMapKeyFound(*location, "cgi_pass") && !isMapKeyFound(*location, "cgi_file"))
+			// 	exitWithError((char *)"webserv : config-ERROR: Key \"cgi_pass\" must following with \"cgi_file\".", EE_NONE);
 			++location;
 		}
 	}
@@ -135,19 +141,6 @@ void ServerConf::setServer(string const & key, string const & val) {
 		else if (val == "disable")
 			m_dirList = false;
 	}
-	else if (key == "return")
-	{
-		vector<string>	splited = split(val, ':');
-		for (size_t i = 0; i < splited.at(0).length(); ++i)
-		{
-			if (!isdigit(splited.at(0).at(i)))
-				exitWithError((char *)"webserv: config-ERROR: Invalid Return values.", EE_NONE);
-		}
-		if (splited.size() == 2)
-			m_returnPage.insert(std::pair<string, string>(splited.at(0), splited.at(1)));
-		else
-			exitWithError((char *)"webserv: config-ERROR: Invalid Return syntex.", EE_NONE);
-	}
 	else if (key == "client_max_size")
 	{
 		for (size_t i = 0; i < val.size(); ++i)
@@ -195,6 +188,9 @@ StringMap ServerConf::lineByLine(std::ifstream & ifile, void (ServerConf::*func)
 		if (value.size() < 2) { exitWithError((char *)"webserv: config-ERROR: Invalid Key Value string.", EE_NONE); }
 		string key = value[0];
 		string val = value[1];
+		if (value.size() > 2) {
+			val = value[1] + " " + value[2];
+		}
 		mapStr[key] = val;
 		if (func) {
 			(this->*func)(key, val);
@@ -210,6 +206,7 @@ const char* ServerConf::LOCATION_KEYS[] = {
 	"cgi_pass",
 	"client_max_size",
 	"method_allow",
+	"return",
 	NULL
 };
 
