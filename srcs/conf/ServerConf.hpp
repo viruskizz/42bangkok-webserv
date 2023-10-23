@@ -22,6 +22,7 @@ private:
 	int m_clientSize;
 	vector<string> m_method;
 	map<string, string> m_returnPage;
+	map<string, string> m_errorPage;
 	vector<StringMap> m_locations;
 
 	void setServer(string const &, string const &);
@@ -32,7 +33,7 @@ public:
 	ServerConf(Config *, std::ifstream &);
 	~ServerConf(void);
 
-	static const char* LOCATION_KEYS[8];
+	static const char* LOCATION_KEYS[9];
 
 	string const & getServerName(void) const;
 	string const & getListen(void) const;
@@ -40,10 +41,10 @@ public:
 	string const & getIndex(void) const;
 	vector<string> const & getMethod(void) const;
 	vector<StringMap> const & getLocations(void) const;
-
 	bool getDirList(void) const;
 	int getClientSize(void) const;
 	map<string, string> const & getReturnPage(void) const;
+	map<string, string> const & getErrorPage(void) const;
 
 	class InvalidConfigException: public std::exception {
 		public:

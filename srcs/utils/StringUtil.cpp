@@ -85,6 +85,17 @@ std::string StringUtil::space(size_t size) {
 	return sp;
 }
 
+std::string StringUtil::join(std::vector<std::string> const strs, std::string const & del) {
+	std::string result = "";
+	for(size_t i = 0; i < strs.size(); i++) {
+		result += strs.at(i);
+		if (i != strs.size() - 1)
+			result += del;
+	}
+	return result;
+}
+
+
 static int	findStrChar(std::string const & str, char find) {
 	int i;
 

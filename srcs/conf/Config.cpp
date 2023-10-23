@@ -151,6 +151,7 @@ void Config::printConfig(void) const
 	std::cout << "================= severSize: [" << this->m_servers.size()  << "] =================" << std::endl;
 	for (size_t i = 0; i < this->m_servers.size(); ++i)
 	{
+		map<string, string> errorPage = this->m_servers.at(i)->getErrorPage();
 		std::cout << "• server        : [" << i << "]" << std::endl;
 		std::cout << "• serverName    : " << this->m_servers.at(i)->getServerName() << std::endl;
 		std::cout << "• listen        : " << this->m_servers.at(i)->getListen() << std::endl;
@@ -158,6 +159,7 @@ void Config::printConfig(void) const
 		std::cout << "• index         : " << this->m_servers.at(i)->getIndex() << std::endl;
 		std::cout << "• directoryList : " << this->m_servers.at(i)->getDirList() << std::endl;
 		std::cout << "• clientSize    : " << this->m_servers.at(i)->getClientSize() << std::endl;
+		std::cout << "• errorPage     : " << errorPage["status_code"] << " " << errorPage["path"] << std::endl;
 		std::cout << "• method        : ";
 		for (vector<string>::const_iterator it = this->m_servers.at(i)->getMethod().begin();
 			it != this->m_servers.at(i)->getMethod().end(); ++it)
