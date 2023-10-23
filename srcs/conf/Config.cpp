@@ -17,7 +17,6 @@ Config::Config(std::string const & filename) : m_filename(filename), m_filedata(
 }
 
 Config::~Config() {
-	// std::cout << "[Config] destructor is called" << std::endl;
 	for (std::vector<ServerConf*>::iterator it = m_servers.begin();
 		it != m_servers.end();) {
 		delete *it;
@@ -63,7 +62,7 @@ void Config::setFiledata() {
 		file.close();
 	}
 	else {
-		exitWithError((char *)"webserv: Error: File not found or not enough permission to open.", EE_NONE);//throw Config::FileNotFoundException();
+		exitWithError((char *)"webserv: Error: File not found or not enough permission to open.", EE_NONE);
 	}
 }
 
@@ -73,11 +72,29 @@ void Config::setConfig(std::string & key, std::string & val) {
 	}
 	if (key == "server") {
 		if (val != "{") {
-			exitWithError((char *)"webserv: Error: Configuration is invalid.", EE_NONE);//throw Config::InvalidConfigException();
+			exitWithError((char *)"webserv: Error: Configuration is invalid.", EE_NONE);
 		}
 		ServerConf *serverConf = new ServerConf(this, m_ifile);
 		m_servers.push_back(serverConf);
 	}
+}
+
+void Config::validate() const {
+	for(size_t i = 0; i < m_servers.size(); i++) {
+		if (!this->isValidServerName(*m_servers.at(i)))
+			exitWithError((char *)"webserv: Error: Configuration is invalid. Server is duplicated", EE_NONE);
+	}
+}
+
+bool Config::isValidServerName(ServerConf & conf) const {
+	int count = 0;
+	for(size_t i = 0; i < m_servers.size(); i++) {
+		if (m_servers.at(i)->getServerName() == conf.getServerName() && m_servers.at(i)->getListen() == conf.getListen()) {
+			count++;
+		}
+	}
+
+	return count == 1;
 }
 
 void Config::lineByLine(std::ifstream & ifile, void (Config::*func)(string & key, string & val)) {
@@ -88,7 +105,7 @@ void Config::lineByLine(std::ifstream & ifile, void (Config::*func)(string & key
 		if (value.size() == 0) { continue; }
 		if (value.size() < 2) {
 			std::cout << "Error Line: " << line << std::endl;
-			exitWithError((char *)"webserv: Error: Configuration is invalid.", EE_NONE);//throw Config::InvalidConfigException();
+			exitWithError((char *)"webserv: Error: Configuration is invalid.", EE_NONE);
 		}
 		string key = value[0];
 		string val = value[1];

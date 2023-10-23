@@ -36,6 +36,7 @@ int	main(int argc, char **argv)
 		exitWithError((char *)"webserv: Error: wrong argument.\n(hint) ./webserv [configurtion_file]", EE_NONE);
 	server = new Server();
 	configFile->printConfig();
+	configFile->validate();
 	server->init(*configFile);
 	server->start(*configFile);
 	return (EXIT_SUCCESS);

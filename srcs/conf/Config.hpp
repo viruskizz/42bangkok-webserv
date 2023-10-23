@@ -27,6 +27,8 @@ private:
 	string m_root;
 	vector<ServerConf *> m_servers;
 
+	bool isValidServerName(ServerConf &) const;
+
 protected:
 	void lineByLine(std::ifstream & ifile, void (Config::*func)(string &, string &));
 
@@ -44,15 +46,8 @@ public:
 	string const & getIndex(void) const;
 	vector<ServerConf*> const &getServers(void) const;
 
+	void validate(void) const;
 	void printConfig(void) const;
-	// class FileNotFoundException: public std::exception {
-	// 	public:
-	// 		virtual const char* what() const throw() { return "File not found or not enough permission to open"; }
-	// };
-	// class InvalidConfigException: public std::exception {
-	// 	public:
-	// 		virtual const char* what() const throw() { return "Configuration is invalid"; }
-	// };
 };
 
 std::ostream & operator << (std::ostream &, Config const &);
