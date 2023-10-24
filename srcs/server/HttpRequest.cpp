@@ -54,57 +54,52 @@ HttpRequest	&HttpRequest::operator=(HttpRequest const &rhs)
 		this->_path = rhs._path;
 		this->_serverNum = rhs._serverNum;
 		this->_return = rhs._return;
+		this->_errorPage = rhs._errorPage;
 	}
 	return (*this);
 }
 
-std::map<std::string, std::string> const	&HttpRequest::getRequestHeader(void) const
-{
+std::map<std::string, std::string> const	&HttpRequest::getRequestHeader(void) const {
 	return (this->_requestHeader);
 }
 
-std::vector<RequestBody> const	&HttpRequest::getRequestBody(void) const
-{
+std::vector<RequestBody> const	&HttpRequest::getRequestBody(void) const {
 	return (this->_requestBody);
 }
 
-std::string const	&HttpRequest::getRequestRaw(void) const
-{
+std::string const	&HttpRequest::getRequestRaw(void) const {
 	return (this->_raw);
 }
 
-std::string const	&HttpRequest::getPath(void) const
-{
+std::string const	&HttpRequest::getPath(void) const {
 	return (this->_path);
 }
 
-int	HttpRequest::getServerNum(void) const
-{
+int	HttpRequest::getServerNum(void) const {
 	return (this->_serverNum);
 }
 
-std::string const	&HttpRequest::getFileCGI(void) const
-{
+std::string const	&HttpRequest::getFileCGI(void) const {
 	return (this->_fileCGI);
 }
 
-int	HttpRequest::getMaxBody(void) const
-{
+int	HttpRequest::getMaxBody(void) const {
 	return (this->_maxBody);
 }
 
-std::vector<std::string> const	&HttpRequest::getMethodAllow(void) const
-{
+std::vector<std::string> const	&HttpRequest::getMethodAllow(void) const {
 	return (this->_methodAllow);
 }
 
-std::vector<std::string> const	&HttpRequest::getReturn(void) const
-{
+std::vector<std::string> const	&HttpRequest::getReturn(void) const {
 	return (this->_return);
 }
 
-void	HttpRequest::setPath(std::string &path)
-{
+std::map<std::string, std::string> const	&HttpRequest::getErrorPage(void) const {
+	return (this->_errorPage);
+}
+
+void	HttpRequest::setPath(std::string &path) {
 	this->_path = path;
 }
 
@@ -317,6 +312,7 @@ void	HttpRequest::initHttpRequest(Config const &server)
 		return ;
 	this->_maxBody = server.getServers().at(this->_serverNum)->getClientSize();
 	this->_methodAllow = server.getServers().at(this->_serverNum)->getMethod();
+	this->_errorPage = server.getServers().at(this->_serverNum)->getErrorPage();
 	this->_fileCGI.clear();
 	if (this->_requestHeader.at("URL") == "/")
 	{

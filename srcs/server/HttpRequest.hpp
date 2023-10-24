@@ -40,12 +40,14 @@ class HttpRequest
 		std::string	const							&getPath(void) const;
 		std::string const							&getFileCGI(void) const;
 		std::vector<std::string> const				&getReturn(void) const;
+		std::map<std::string, std::string> const	&getErrorPage(void) const;
 		int											getServerNum(void) const;
 		int											getMaxBody(void) const;
 		void										setPath(std::string &path);
 
 	private:
 		std::string							_raw;
+		std::string							_root;
 		std::string							_path;
 		std::string							_fileCGI;
 		int									_serverNum;
@@ -54,6 +56,7 @@ class HttpRequest
 		int									_maxBody;
 		std::vector<std::string>			_methodAllow;
 		bool								_badRequest;
+		std::map<std::string, std::string>	_errorPage;
 		std::vector<std::string>			_return;
 
 		void								readSocket(int socket);

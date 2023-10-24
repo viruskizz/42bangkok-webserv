@@ -53,8 +53,10 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 		this->_code = methodPUT(request);
 	else
 		this->_code = 405;
-	if (!this->_cgi)
+	if (!this->_cgi) {
+		this->setErrorPage(request, server);
 		this->initHeader(request);
+	}
 }
 
 void	HttpRespond::commondGatewayInterface(Config const &server, HttpRequest const &request)
@@ -159,7 +161,6 @@ void	HttpRespond::initHeader(HttpRequest const &request)
 				this->_respondHeader += ", ";
 		}
 		this->_respondHeader += BREAK_LINE;
-
 	}
 	if (!request.getReturn().empty()) {
 		this->_respondHeader += "Location: " + request.getReturn().at(1);
@@ -169,6 +170,20 @@ void	HttpRespond::initHeader(HttpRequest const &request)
 	this->_respondHeader += BREAK_LINE;
 }
 
+void	HttpRespond::setErrorPage(HttpRequest const &request, Config const &server) {
+	if (this->_code == 200)
+		return ;
+	std::map<std::string, std::string> errorPage = request.getErrorPage();
+	std::cout << errorPage["path"] << std::endl;
+	if (errorPage["path"].empty()) {
+		this->_bodyContent = this->_statusCodeBody.at(this->_code);
+	} else {
+		std::string path = server.getServers().at(request.getServerNum())->getRoot() + "/" + errorPage["path"];
+		if (this->readFile(path) != 200)
+			this->_bodyContent = this->_statusCodeBody.at(this->_code);
+	}
+	this->_html = true;
+}
 std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs)
 {
 	out << "=============================================================" << std::endl;

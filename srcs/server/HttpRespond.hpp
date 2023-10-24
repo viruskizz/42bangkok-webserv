@@ -18,6 +18,7 @@
 # include "../Webserv.hpp"
 # include "../StatusCodeBody.hpp"
 # include "../conf/Config.hpp"
+# include "../conf/ServerConf.hpp"
 # include "CommonGatewayInterface.hpp"
 # include "HttpRequest.hpp"
 # include "Cookie.hpp"

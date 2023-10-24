@@ -11,6 +11,8 @@ ServerConf::ServerConf(Config *conf, std::ifstream & ifile): m_ifile(ifile), m_s
 	m_method = split("GET,POST,DELETE", ',');
 	m_dirList = true;
 	m_clientSize = -1;
+	m_errorPage["status_code"] = "0";
+	m_errorPage["path"] = "";
 	lineByLine(m_ifile, &ServerConf::setServer);
 	this->validate();
 }
@@ -110,6 +112,10 @@ map<string, string> const & ServerConf::getReturnPage(void) const
 	return m_returnPage;
 }
 
+map<string, string> const & ServerConf::getErrorPage(void) const
+{
+	return m_errorPage;
+}
 /************************************************
  *           Specific member function           *
  ************************************************/
@@ -150,12 +156,23 @@ void ServerConf::setServer(string const & key, string const & val) {
 		}
 		m_clientSize = stringToint(val);
 	}
+	else if (key == "error_page") {
+		vector<string> values = StringUtil::split(val, " ");
+		std::cout << val << std::endl;
+		if (values.size() == 0) {
+	
+		} else if (values.size() == 2) {
+			m_errorPage["status_code"] = values[0];
+			m_errorPage["path"] = values[1];
+		} else {
+			exitWithError((char *)"webserv: config-ERROR: Invalid error_page value.", EE_NONE);
+		}
+	}
 	else if (key == "location" && val != "{") { exitWithError((char *)"webserv: config-ERROR: Invalid Key Value", EE_NONE); }
 	else if (key == "location") {
 		map<string, string> mapStr = lineByLine(m_ifile, NULL);
 		m_locations.push_back(mapStrLocation(mapStr));
-	}
-	else
+	}else
 		exitWithError((char *)"webserv: config-ERROR: Invalid key.", EE_NONE);
 }
 
@@ -187,10 +204,9 @@ StringMap ServerConf::lineByLine(std::ifstream & ifile, void (ServerConf::*func)
 		}
 		if (value.size() < 2) { exitWithError((char *)"webserv: config-ERROR: Invalid Key Value string.", EE_NONE); }
 		string key = value[0];
-		string val = value[1];
-		if (value.size() > 2) {
-			val = value[1] + " " + value[2];
-		}
+		value.erase(value.begin());
+		string val = StringUtil::join(value, " ");
+		std::cout << "-" << val << std::endl;
 		mapStr[key] = val;
 		if (func) {
 			(this->*func)(key, val);
@@ -207,6 +223,7 @@ const char* ServerConf::LOCATION_KEYS[] = {
 	"client_max_size",
 	"method_allow",
 	"return",
+	"error_page",
 	NULL
 };
 
