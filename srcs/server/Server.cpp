@@ -55,9 +55,9 @@ void Server::init(Config const &configFile)
 
 void Server::start(Config const &configFile)
 {
-	int 			maxSocketFd;
-	fd_set			currentSocket;
-	fd_set			readySocket;
+	int 	maxSocketFd;
+	fd_set	currentSocket;
+	fd_set	readySocket;
 
 	FD_ZERO(&currentSocket);
 	for (size_t i = 0; i < m_serverSockets.size(); ++i)

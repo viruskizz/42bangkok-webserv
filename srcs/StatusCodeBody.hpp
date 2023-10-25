@@ -4,7 +4,7 @@
 # define LDIR_BEGIN	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>list_directory</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin-left: 1.3%; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -21,7 +21,7 @@
 # define BODY201	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>201 Created<</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -38,7 +38,7 @@
 # define BODY204	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>204 No Content</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -55,7 +55,7 @@
 # define BODY400	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>400 Bad Request/title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -72,7 +72,7 @@
 # define BODY401	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>401 Unauthorized</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -89,7 +89,7 @@
 # define BODY403	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>403 Forbidden</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -106,7 +106,7 @@
 # define BODY404	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>404 Not Found</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -123,7 +123,7 @@
 # define BODY405	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>405 Method Not Allowed</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -140,7 +140,7 @@
 # define BODY408	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>408 Request Timeout</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -157,7 +157,7 @@
 # define BODY411	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>411 Length Required</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -174,7 +174,7 @@
 # define BODY413	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>413 Payload Too Large</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -191,7 +191,7 @@
 # define BODY500	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>500 Internal Server Error</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -208,7 +208,7 @@
 # define BODY502	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>502 Bad Gateway</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\
@@ -225,7 +225,7 @@
 # define BODY503	"<!DOCTYPE html>\n" 																							\
 					"<html>\n" 																										\
 						"\t<head>\n"																								\
-							"\t\t<title>post_method</title>\n"																		\
+							"\t\t<title>503 Service Unavailable</title>\n"																		\
 							"\t\t<style>\n"																							\
 								"\t\t\thtml { color-scheme: light dark; }\n"														\
 								"\t\t\tbody { width: 35em; margin: 0 auto; font-family: Tahoma, Verdana, Arial, sans-serif; }\n"	\

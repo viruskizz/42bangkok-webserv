@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 18:57:45 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/21 08:32:20 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/25 17:00:29 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class HttpRequest
 		std::map<std::string, std::string> const	&getErrorPage(void) const;
 		int											getServerNum(void) const;
 		int											getMaxBody(void) const;
+		int											getCGITimeout(void) const;
 		void										setPath(std::string &path);
 
 	private:
@@ -58,6 +59,7 @@ class HttpRequest
 		bool								_badRequest;
 		std::map<std::string, std::string>	_errorPage;
 		std::vector<std::string>			_return;
+		int									_cgiTImeout;
 
 		void								readSocket(int socket);
 		void								requestPaser(void);
@@ -70,6 +72,8 @@ class HttpRequest
 			std::vector<std::string>::iterator it, std::vector<std::string> &requestLine);
 		std::vector<std::string>::iterator	requestBodyChunkPaser(
 			std::vector<std::string>::iterator it, std::vector<std::string> &requestLine);
+		bool								initCGI(
+			std::vector<std::map<std::string, std::string> >::const_iterator it, std::string path);
 };
 
 std::ostream	&operator<<(std::ostream &out, HttpRequest const &rhs);

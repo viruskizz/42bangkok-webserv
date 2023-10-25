@@ -24,6 +24,7 @@ private:
 	map<string, string> m_returnPage;
 	map<string, string> m_errorPage;
 	vector<StringMap> m_locations;
+	int m_cgiTimeout;
 
 	void setServer(string const &, string const &);
 	StringMap mapStrLocation(StringMap);
@@ -33,7 +34,7 @@ public:
 	ServerConf(Config *, std::ifstream &);
 	~ServerConf(void);
 
-	static const char* LOCATION_KEYS[9];
+	static const char* LOCATION_KEYS[10];
 
 	string const & getServerName(void) const;
 	string const & getListen(void) const;
@@ -45,6 +46,7 @@ public:
 	int getClientSize(void) const;
 	map<string, string> const & getReturnPage(void) const;
 	map<string, string> const & getErrorPage(void) const;
+	int	getCGITimeout(void) const;
 
 	class InvalidConfigException: public std::exception {
 		public:

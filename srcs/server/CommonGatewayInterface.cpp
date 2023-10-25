@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/15 22:43:02 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/21 10:25:08 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/26 03:18:28 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ std::string	CommonGatewayInterface::executeCGI(Config const &server, HttpRequest
 	}
 	if (!request.getRequestBody().size())
 	{
-		fd = pathExecutor(executePath, request.getRequestBody(), -1);
+		fd = pathExecutor(executePath, request.getRequestBody(), -1, request.getCGITimeout());
 		if (fd == -1)
 			return (this->errnoCheck());
 		content = readFile(fd);
@@ -140,7 +140,7 @@ std::string	 CommonGatewayInterface::executeWithBody(HttpRequest const &request,
 	body.clear();
 	for (size_t index = 0; index < request.getRequestBody().size(); ++index)
 	{
-		fd = pathExecutor(executePath, request.getRequestBody(), index);
+		fd = pathExecutor(executePath, request.getRequestBody(), index, request.getCGITimeout());
 		if (fd == -1)
 			return (this->errnoCheck());
 		content = readFile(fd);
@@ -170,12 +170,15 @@ std::string	 CommonGatewayInterface::executeWithBody(HttpRequest const &request,
 
 std::string	CommonGatewayInterface::errnoCheck(void)
 {
-	if (errno == 2)
-		this->_cgiStatus = 404;
-	else if (errno == 13)
-		this->_cgiStatus = 401;
-	else
-		this->_cgiStatus = 500;
+	if (this->_cgiStatus == 200)
+	{
+		if (errno == 2)
+			this->_cgiStatus = 404;
+		else if (errno == 13)
+			this->_cgiStatus = 401;
+		else
+			this->_cgiStatus = 500;
+	}
 	return ("");
 }
 
@@ -196,11 +199,11 @@ static int	findBreakLine(std::vector<std::string> const &splited)
 std::string CommonGatewayInterface::getExecutorLanguage(Config const &server, HttpRequest const &request)
 {
 	(void) server;
-	if (this->_fileName.find(".py", this->_fileName.length() - 3) != std::string::npos)
+	if (request.getPath().find(".py", request.getPath().length() - 3) != std::string::npos)
 		return ("python3");
-	else if (this->_fileName.find(".php", this->_fileName.length() - 4) != std::string::npos)
+	else if (request.getPath().find(".php", request.getPath().length() - 4) != std::string::npos)
 		return ("php");
-	else if (this->_fileName.find(".sh", this->_fileName.length() - 3) != std::string::npos)
+	else if (request.getPath().find(".sh", request.getPath().length() - 3) != std::string::npos)
 		return ("bash");
 	return(request.getPath());
 }
@@ -245,17 +248,15 @@ char	**CommonGatewayInterface::getExecutorPath(std::string const &exceLanguage)
 }
 
 #define INFILE_NAME (char *)"t1s3AStaTEmpuLAl1flYinp00tfoRC0mmoNGAt3way1Nte2fac335ucuT3"
+#define ERFILE_NAME (char *)"Erdfhurfjdskirfhdjspfdkn843j0djfjhfhhuror"
 
-int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBody> const &requestBody, int index)
+int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBody> const &requestBody, int index, int cgiTimeout)
 {
 	int				fd[2];
-	int				inputFd;
-	pid_t			pid;
-	int				returnValue;
+	pid_t			pid[2];
 	std::ofstream	inputFile;
-	char			**environment;
+	int				process;
 
-	returnValue = 0;
 	inputFile.open(INFILE_NAME, std::ofstream::trunc | std::ofstream::out);
 	if (!inputFile.is_open())
 		return (-1);
@@ -264,29 +265,76 @@ int	CommonGatewayInterface::pathExecutor(char **execPath, std::vector<RequestBod
 	inputFile.close();
 	if (pipe(fd) < 0)
 		return (-1);
-	pid = fork();
-	if (pid == -1)
+	process = cgiTimeout >= 0 ? 2 : 1;
+	for (int count = 0; count < process ; ++count)
+	{
+		pid[count] = fork();
+		if (pid[count] == -1)
+			return (-1);
+		else if (!pid[count])
+			pathExecutorChild(execPath, fd, cgiTimeout, count);
+	}
+	if (!pathExecutorParent(pid, fd))
 		return (-1);
-	else if (!pid)
+	return (fd[0]);
+}
+
+bool	CommonGatewayInterface::pathExecutorParent(pid_t pid[2], int fd[2])
+{
+	int	returnValue;
+	int	childPid;
+
+	returnValue = 0;
+	while (true)
+	{
+		childPid = waitpid(-1, &returnValue, 0);
+		if (childPid == pid[0])
+		{
+			for (int i = 0; i < 2; ++i)
+				kill(pid[i], SIGKILL);
+			break ;
+		}
+		else if (childPid == pid[1])
+		{
+			this->_cgiStatus = 500;
+			for (int i = 0; i < 2; ++i)
+				kill(pid[i], SIGKILL);
+			break ;
+		}
+	}
+	if (!access(INFILE_NAME, F_OK))
+		remove(INFILE_NAME);
+	if (!access(ERFILE_NAME, F_OK))
+		remove(ERFILE_NAME);
+	close(fd[1]);
+	if (WEXITSTATUS(returnValue) || this->_cgiStatus != 200)
+		return (false);
+	return (true);
+}
+
+void	CommonGatewayInterface::pathExecutorChild(char ** execPath, int fd[2], int cgiTimeout, int count)
+{
+	int		inputFd;
+	int		errorFd;
+	char	**environment;
+	if (count == 0)
 	{
 		inputFd = open(INFILE_NAME, O_RDONLY);
 		if (inputFd < 0 || dup2(inputFd, STDIN_FILENO) == -1 || dup2(fd[1], STDOUT_FILENO) == -1
 			|| close(fd[0]) == -1 || close(fd[1]) == -1 || close(inputFd) == -1)
 			exit(2);
+		errorFd = open(ERFILE_NAME, O_CREAT | O_WRONLY);
+		if (errorFd < 0 || dup2(errorFd, STDERR_FILENO) == -1 || close(errorFd) == -1)
+			exit(2);
 		environment = vectorStringToChar(this->_environment);
 		execve(execPath[0], execPath, environment);
 		exit(1);
 	}
-	else
+	else if (count == 1)
 	{
-		waitpid(pid, &returnValue, 0);
-		if (!access(INFILE_NAME, F_OK))
-			remove(INFILE_NAME);
-		close(fd[1]);
-		if (returnValue)
-			return (-1);
+		sleep(cgiTimeout);
+		exit(1);
 	}
-	return (fd[0]);
 }
 
 void	CommonGatewayInterface::buildEnvironment(HttpRequest const &request)
@@ -349,6 +397,7 @@ void	CommonGatewayInterface::initScriptURI(HttpRequest const &request)
 	if (fileIndex == -1)
 	{
 		this->_cgiStatus = 404;
+		std::cout << "out" << std::endl;
 		return ;
 	}
 	this->_protocol = "HTTP/1.1";
