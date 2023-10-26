@@ -6,7 +6,7 @@
 /*   By: sharnvon <sharnvon@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/08 23:20:21 by sharnvon          #+#    #+#             */
-/*   Updated: 2023/10/21 08:32:49 by sharnvon         ###   ########.fr       */
+/*   Updated: 2023/10/26 03:56:24 by sharnvon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,11 @@ std::vector<std::string> const	&HttpRequest::getReturn(void) const {
 
 std::map<std::string, std::string> const	&HttpRequest::getErrorPage(void) const {
 	return (this->_errorPage);
+}
+
+int	HttpRequest::getCGITimeout(void) const
+{
+	return (this->_cgiTImeout);
 }
 
 void	HttpRequest::setPath(std::string &path) {
@@ -313,11 +318,10 @@ void	HttpRequest::initHttpRequest(Config const &server)
 	this->_maxBody = server.getServers().at(this->_serverNum)->getClientSize();
 	this->_methodAllow = server.getServers().at(this->_serverNum)->getMethod();
 	this->_errorPage = server.getServers().at(this->_serverNum)->getErrorPage();
+	this->_cgiTImeout = server.getServers().at(this->_serverNum)->getCGITimeout();
 	this->_fileCGI.clear();
 	if (this->_requestHeader.at("URL") == "/")
-	{
 		this->_path = server.getServers().at(this->_serverNum)->getRoot() + "/" + server.getIndex();
-	}
 	else
 	{
 		for (it = server.getServers().at(this->_serverNum)->getLocations().begin();
@@ -376,29 +380,29 @@ bool	HttpRequest::innitCGIPath(std::vector<std::map<std::string,
 	{
 		fileCGI.erase(0, 1);
 		if (pathURL.rfind(fileCGI) == pathURL.length() - fileCGI.length() && pathURL.length() > fileCGI.length())
-		{
-			this->_path = it->at("cgi_pass");
-			this->_fileCGI = it->at("cgi_file");
-			if (it->find("client_max_size") != it->end())
-				this->_maxBody = stringToint(it->at("client_max_size"));
-			if (it->find("method_allow") != it->end())
-			{
-				std::vector<std::string> tmp = split(it->at("method_allow"), ',');
-				for (std::vector<std::string>::iterator item = tmp.begin(); item != tmp.end(); ++item)
-					this->_methodAllow.push_back(*item);
-			}
-			return (true);
-		}
+			return (initCGI(it, it->at("cgi_pass")));
 	}
 	else if (fileCGI == fileName)
-	{
-		this->_path = newPath;
-		this->_fileCGI = it->at("cgi_file");
-		if (it->find("client_max_size") != it->end())
-			this->_maxBody = stringToint(it->at("client_max_size"));
-		return (true);
-	}
+		return (initCGI(it, newPath));
 	return (false);
+}
+
+bool HttpRequest::initCGI(
+	std::vector<std::map<std::string, std::string> >::const_iterator it, std::string path)
+{
+	this->_path = path;
+	this->_fileCGI = it->at("cgi_file");
+	if (it->find("client_max_size") != it->end())
+		this->_maxBody = stringToint(it->at("client_max_size"));
+	if (it->find("method_allow") != it->end())
+	{
+		std::vector<std::string> tmp = split(it->at("method_allow"), ',');
+		for (std::vector<std::string>::iterator item = tmp.begin(); item != tmp.end(); ++item)
+			this->_methodAllow.push_back(*item);
+	}
+	if (it->find("cgi_timeout") != it->end())
+		this->_cgiTImeout = stringToint(it->at("cgi_timeout"));
+	return (true);
 }
 
 

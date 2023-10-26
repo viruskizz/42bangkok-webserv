@@ -104,7 +104,6 @@ void Config::lineByLine(std::ifstream & ifile, void (Config::*func)(string & key
 		vector<string> value = StringUtil::split(line, " \t");
 		if (value.size() == 0) { continue; }
 		if (value.size() < 2) {
-			std::cout << "Error Line: " << line << std::endl;
 			exitWithError((char *)"webserv: Error: Configuration is invalid.", EE_NONE);
 		}
 		string key = value[0];
@@ -151,7 +150,7 @@ void Config::printConfig(void) const
 	std::cout << "================= severSize: [" << this->m_servers.size()  << "] =================" << std::endl;
 	for (size_t i = 0; i < this->m_servers.size(); ++i)
 	{
-		map<string, string> errorPage = this->m_servers.at(i)->getErrorPage();
+		// map<string, string> errorPage = this->m_servers.at(i)->getErrorPage();
 		std::cout << "• server        : [" << i << "]" << std::endl;
 		std::cout << "• serverName    : " << this->m_servers.at(i)->getServerName() << std::endl;
 		std::cout << "• listen        : " << this->m_servers.at(i)->getListen() << std::endl;
@@ -159,7 +158,13 @@ void Config::printConfig(void) const
 		std::cout << "• index         : " << this->m_servers.at(i)->getIndex() << std::endl;
 		std::cout << "• directoryList : " << this->m_servers.at(i)->getDirList() << std::endl;
 		std::cout << "• clientSize    : " << this->m_servers.at(i)->getClientSize() << std::endl;
-		std::cout << "• errorPage     : " << errorPage["status_code"] << " " << errorPage["path"] << std::endl;
+		std::cout << "• cgiTimeout    : " << this->m_servers.at(i)->getCGITimeout() << std::endl;
+		std::cout << "• errorPage     : " << this->m_servers.at(i)->getErrorPage().size() << std::endl;
+			std::cout << "------------ errorPage ------------" << std::endl;
+		for (map<string, string>::const_iterator it = this->m_servers.at(i)->getErrorPage().begin();
+			it != this->m_servers.at(i)->getErrorPage().end(); ++it)
+			std::cout << "-> " << it->first << " " << it->second << std::endl;
+			std::cout << "--------------------------------" << std::endl;
 		std::cout << "• method        : ";
 		for (vector<string>::const_iterator it = this->m_servers.at(i)->getMethod().begin();
 			it != this->m_servers.at(i)->getMethod().end(); ++it)

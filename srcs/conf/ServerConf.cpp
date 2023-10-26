@@ -11,8 +11,7 @@ ServerConf::ServerConf(Config *conf, std::ifstream & ifile): m_ifile(ifile), m_s
 	m_method = split("GET,POST,DELETE", ',');
 	m_dirList = true;
 	m_clientSize = -1;
-	m_errorPage["status_code"] = "0";
-	m_errorPage["path"] = "";
+	m_cgiTimeout = -1;
 	lineByLine(m_ifile, &ServerConf::setServer);
 	this->validate();
 }
@@ -56,14 +55,6 @@ void	ServerConf::validate(void) const
 				}
 				++locationMap;
 			}
-			// if (isMapKeyFound(*location, "path") && !isMapKeyFound(*location, "root"))
-			// 	exitWithError((char *)"webserv : config-ERROR: Key \"path\" must following with \"root\".", EE_NONE);
-			// else if( isMapKeyFound(*location, "root") && !isMapKeyFound(*location, "path"))
-			// 	exitWithError((char *)"webserv : config-ERROR: Key \"root\" must following with \"path\".", EE_NONE);
-			// else if (isMapKeyFound(*location, "cgi_file") && !isMapKeyFound(*location, "cgi_pass"))
-			// 	exitWithError((char *)"webserv : config-ERROR: Key \"cgi_file\" must following with \"cgi_pass\".", EE_NONE);
-			// else if (isMapKeyFound(*location, "cgi_pass") && !isMapKeyFound(*location, "cgi_file"))
-			// 	exitWithError((char *)"webserv : config-ERROR: Key \"cgi_pass\" must following with \"cgi_file\".", EE_NONE);
 			++location;
 		}
 	}
@@ -116,6 +107,11 @@ map<string, string> const & ServerConf::getErrorPage(void) const
 {
 	return m_errorPage;
 }
+
+int		ServerConf::getCGITimeout(void) const
+{
+	return m_cgiTimeout;
+}
 /************************************************
  *           Specific member function           *
  ************************************************/
@@ -158,15 +154,22 @@ void ServerConf::setServer(string const & key, string const & val) {
 	}
 	else if (key == "error_page") {
 		vector<string> values = StringUtil::split(val, " ");
-		std::cout << val << std::endl;
 		if (values.size() == 0) {
 	
 		} else if (values.size() == 2) {
-			m_errorPage["status_code"] = values[0];
-			m_errorPage["path"] = values[1];
+			m_errorPage.insert(std::pair<std::string, std::string>(values.at(0), values.at(1)));
 		} else {
 			exitWithError((char *)"webserv: config-ERROR: Invalid error_page value.", EE_NONE);
 		}
+	}
+	else if (key == "cgi_timeout")
+	{
+		for (size_t i = 0; i < val.size(); ++i)
+		{
+			if (!isdigit(val.at(i)))
+				exitWithError((char *)"webserv: config-ERROR: Invalid CGI_Timeout value.", EE_NONE);
+		}
+		m_cgiTimeout = stringToint(val);
 	}
 	else if (key == "location" && val != "{") { exitWithError((char *)"webserv: config-ERROR: Invalid Key Value", EE_NONE); }
 	else if (key == "location") {
@@ -206,7 +209,6 @@ StringMap ServerConf::lineByLine(std::ifstream & ifile, void (ServerConf::*func)
 		string key = value[0];
 		value.erase(value.begin());
 		string val = StringUtil::join(value, " ");
-		std::cout << "-" << val << std::endl;
 		mapStr[key] = val;
 		if (func) {
 			(this->*func)(key, val);
@@ -224,6 +226,7 @@ const char* ServerConf::LOCATION_KEYS[] = {
 	"method_allow",
 	"return",
 	"error_page",
+	"cgi_timeout",
 	NULL
 };
 

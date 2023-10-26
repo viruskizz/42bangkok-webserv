@@ -41,7 +41,7 @@ _respondHeader(""), _bodyContent(""), _code(0), _cgi(false), _html(false)
 	else if (request.getMaxBody() != -1 && request.getRequestBody().size()
 		&& (int) request.getRequestBody().at(bodyIndex).getContent().size() > request.getMaxBody())
 		this->_code = 413;
-	else if (!request.getFileCGI().empty())
+	else if (!request.getFileCGI().empty() && findStringInVector(request.getMethodAllow(), request.getRequestHeader().at("Method")))
 		this->commondGatewayInterface(server, request);
 	else if (request.getRequestHeader().at("Method") == "GET" && findStringInVector(request.getMethodAllow(), "GET"))
 		this->_code = methodGET(request, server);
@@ -114,10 +114,13 @@ int	HttpRespond::getRespondLength(void) const
 
 void	HttpRespond::sendRepond(int socket) const
 {
+	int	writeByte;
 	if (this->_cgi)
-		write(socket, this->_bodyContent.c_str(), this->_bodyContent.size());
+		writeByte = write(socket, this->_bodyContent.c_str(), this->_bodyContent.size());
 	else
-		write(socket, this->getRespond().c_str(), this->getRespondLength());
+		writeByte = write(socket, this->getRespond().c_str(), this->getRespondLength());
+	if (writeByte <= 0)
+		return ;
 }
 
 bool	HttpRespond::getCGI(void) const
@@ -170,20 +173,27 @@ void	HttpRespond::initHeader(HttpRequest const &request)
 	this->_respondHeader += BREAK_LINE;
 }
 
-void	HttpRespond::setErrorPage(HttpRequest const &request, Config const &server) {
+void	HttpRespond::setErrorPage(HttpRequest const &request, Config const &server)
+{
 	if (this->_code == 200)
 		return ;
-	std::map<std::string, std::string> errorPage = request.getErrorPage();
-	std::cout << errorPage["path"] << std::endl;
-	if (errorPage["path"].empty()) {
-		this->_bodyContent = this->_statusCodeBody.at(this->_code);
-	} else {
-		std::string path = server.getServers().at(request.getServerNum())->getRoot() + "/" + errorPage["path"];
-		if (this->readFile(path) != 200)
+	if (this->_statusCodeBody.find(this->_code) != this->_statusCodeBody.end())
+	{
+		if (request.getServerNum() < (int) server.getServers().size()
+			&& server.getServers().at(request.getServerNum())->getErrorPage().find(intToString(this->_code))
+			!= server.getServers().at(request.getServerNum())->getErrorPage().end())
+		{
+			if (this->readFile(server.getServers().at(request.getServerNum())->getErrorPage().at(intToString(this->_code))) != 200)
+			{
+				this->_bodyContent = this->_statusCodeBody.at(this->_code);
+			}
+		}
+		else
 			this->_bodyContent = this->_statusCodeBody.at(this->_code);
 	}
 	this->_html = true;
 }
+
 std::ostream	&operator<<(std::ostream &out, HttpRespond const &rhs)
 {
 	out << "=============================================================" << std::endl;
@@ -245,7 +255,7 @@ int	HttpRespond::methodGET(HttpRequest const &request, Config const &server)
 	DIR	*directory;
 
 	this->_bodyContent.clear();
-	if (request.getPath() == "./YoupiBanane/Yeah")
+	if (request.getPath() == "./html/YoupiBanane//Yeah")
 		return (404);
 	if (!this->listDirectory(request, server))
 	{
@@ -316,6 +326,13 @@ int	HttpRespond::methodPOST(HttpRequest const &request, Config const &server, in
 		return (400);
 	if (request.getRequestHeader().at("Content-Type") == "multipart/form-data")
 		return (methodPOSTUpload(request, server, bodyIndex));
+	if (request.getRequestHeader().at("Content-Type") == "plain/text")
+	{
+		this->_bodyContent.empty();
+		for (size_t i = 0; i < request.getRequestBody().size(); ++i)
+			this->_bodyContent += request.getRequestBody().at(i).getContent();
+		return (200);
+	}
 	else
 	{
 		CommonGatewayInterface	cgi(server, request);
@@ -379,7 +396,6 @@ int	HttpRespond::methodPUT(HttpRequest const &request)
 	std::string		fileName;
 	std::string		name;
 
-	request.getPath();
 	name = request.getPath().substr(request.getPath().rfind('/') + 1);
 	if (access(request.getPath().c_str(), F_OK))
 		newFile.open(request.getPath().c_str());
